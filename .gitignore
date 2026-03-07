@@ -18,6 +18,7 @@ Thumbs.db
 
 # Large media files (too heavy for GitHub)
 *.mp4
+!*eagle.mp4
 *.avi
 *.mov
 *.mp3
