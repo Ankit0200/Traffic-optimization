@@ -39,9 +39,31 @@ def load_trajectories(filepath):
 def cluster_endpoints(trajectories, radius=4):
     """Cluster trajectory endpoints to auto-discover exit zones."""
     ep_counts = defaultdict(list)
+    
+    # Calculate grid bounds for edge filtering
+    if not trajectories:
+        return []
+    max_x = max(max(c[0] for c in traj["cells"]) for traj in trajectories.values())
+    max_y = max(max(c[1] for c in traj["cells"]) for traj in trajectories.values())
+    
+    edge_margin_x = max_x * 0.15
+    edge_margin_y = max_y * 0.15
+    
     for tid, traj in trajectories.items():
-        end = tuple(traj["end"])
-        ep_counts[end].append(tid)
+        start, end = traj["start"], traj["end"]
+        
+        # 1. Displacement filter (must move at least 10 Euclidean cells)
+        dist = np.sqrt((end[0] - start[0])**2 + (end[1] - start[1])**2)
+        if dist < 10:
+            continue
+            
+        # 2. Edge filter (must end near the edges of the frame)
+        is_near_edge_x = end[0] <= edge_margin_x or end[0] >= (max_x - edge_margin_x)
+        is_near_edge_y = end[1] <= edge_margin_y or end[1] >= (max_y - edge_margin_y)
+        
+        if is_near_edge_x or is_near_edge_y:
+            end_tuple = tuple(end)
+            ep_counts[end_tuple].append(tid)
 
     # Sort by frequency
     sorted_eps = sorted(ep_counts.items(), key=lambda x: len(x[1]), reverse=True)

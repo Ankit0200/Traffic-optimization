@@ -400,7 +400,7 @@ def draw_predicted_paths(frame, model, active_cells, cell_size):
 def main():
     parser = argparse.ArgumentParser(description="Coordinate-Based Transition Tracker")
     parser.add_argument("--video", required=True, help="Path to video file")
-    parser.add_argument("--model_path", default="../models/10_epoch.pt", help="YOLO model path")
+    parser.add_argument("--model_path", default="../models/best.pt", help="YOLO model path")
     parser.add_argument("--cell_size", type=int, default=30, help="Grid cell size in pixels")
     args = parser.parse_args()
 

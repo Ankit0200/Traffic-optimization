@@ -231,7 +231,7 @@ def main():
     print(f"Video: {frame_w}x{frame_h} @ {fps:.1f} FPS, {total_frames} frames")
 
     # Tracking state
-    cell_size = args.cell_size
+    cell_size = predictor.cell_size
     # {track_id: [(cx, cy), ...]} — unique cells per vehicle
     vehicle_cells = defaultdict(list)
     prev_cells = {}
