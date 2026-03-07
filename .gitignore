@@ -1,0 +1,38 @@
+# Python / Environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+ENV/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Large media files (too heavy for GitHub)
+*.mp4
+*.avi
+*.mov
+*.mp3
+*.wav
+*.vtt
+
+# Model weights (often too large to track in git, better to use Releases)
+*.pt
+*.pth
+*.weights
+*.onnx
+
+# Data and Logs (Generated files)
+*eval_log.json
+*trajectories.json
+*transitions.json
+*transitions_markov_model.json
+*pmc_model.json
