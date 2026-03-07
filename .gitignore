@@ -34,5 +34,8 @@ Thumbs.db
 *eval_log.json
 *trajectories.json
 *transitions.json
-*transitions_markov_model.json
+*Transitions_markov_model.json
 *pmc_model.json
+
+# Ignore other projects
+vosk/
