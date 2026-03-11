@@ -543,8 +543,10 @@ def main():
                     cap.release()
                     cv2.destroyAllWindows()
                     trans.summary()
-                    output_path = Path(args.video).stem + "_transitions.json"
-                    trans.save(output_path)
+                    out_dir_trans = Path("data/transitions")
+                    out_dir_trans.mkdir(parents=True, exist_ok=True)
+                    output_path = out_dir_trans / (Path(args.video).stem + "_transitions.json")
+                    trans.save(str(output_path))
                     return
                 elif key2 == 81 or key2 == 2:  # LEFT arrow
                     # Go back 2 frames (1 to undo current, 1 to go back)
@@ -600,8 +602,10 @@ def main():
 
     trans.summary()
 
-    output_path = Path(args.video).stem + "_transitions.json"
-    trans.save(output_path)
+    out_dir_trans = Path("data/transitions")
+    out_dir_trans.mkdir(parents=True, exist_ok=True)
+    output_path = out_dir_trans / (Path(args.video).stem + "_transitions.json")
+    trans.save(str(output_path))
 
     # ── Save raw trajectories for ML training ─────────────────────────────
     trajectories_data = {}
@@ -623,8 +627,10 @@ def main():
                 "length": len(cells_seq)
             }
 
-    traj_path = Path(args.video).stem + "_trajectories.json"
-    with open(traj_path, 'w') as f:
+    out_dir_traj = Path("data/trajectories")
+    out_dir_traj.mkdir(parents=True, exist_ok=True)
+    traj_path = out_dir_traj / (Path(args.video).stem + "_trajectories.json")
+    with open(str(traj_path), 'w') as f:
         json.dump({
             "cell_size": cell_size,
             "total_tracks": len(trajectories_data),

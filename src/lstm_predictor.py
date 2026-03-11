@@ -499,8 +499,10 @@ def main():
     print(classification_report(all_true, all_preds, target_names=target_names))
 
     # Step 7: Save
-    model_path = Path(args.data).stem + "_lstm_model.pt"
-    save_model(model, label_map, clusters, cell_size, model_path)
+    out_dir_lstm = Path("models/lstm")
+    out_dir_lstm.mkdir(parents=True, exist_ok=True)
+    model_path = out_dir_lstm / (Path(args.data).stem + "_lstm_model.pt")
+    save_model(model, label_map, clusters, cell_size, str(model_path))
 
     print(f"\n  To use in real-time:")
     print(f"    1. Load model from '{model_path}'")
