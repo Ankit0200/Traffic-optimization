@@ -101,29 +101,39 @@ EXIT_COLORS = [
 ]
 
 
-def draw_exit_zones(frame, clusters, label_map, cell_size, alpha=0.45):
+def draw_exit_zones(frame, clusters, label_map, display_cell_size, model_cell_size, alpha=0.45):
     """Draw highlighted colored rectangles on exit zone cells with borders."""
     overlay = frame.copy()
+    
+    # Scale factor from training cell size to display cell size
+    scale = model_cell_size / display_cell_size if display_cell_size > 0 else 1.0
+
     for cl in clusters:
         label = cl["label"]
         idx = label_map.get(label, 0)
         color = EXIT_COLORS[idx % len(EXIT_COLORS)]
+        
+        # Scale cells
         cells = cl["cells"]
 
         for c in cells:
-            cx, cy = int(c[0]), int(c[1])
-            px1 = cx * cell_size
-            py1 = cy * cell_size
-            px2 = px1 + cell_size
-            py2 = py1 + cell_size
+            # The cell coordinate in the original training grid
+            cx_orig, cy_orig = c[0], c[1]
+            
+            # Map it to pixel coordinates using the original cell_size it was trained on
+            px1 = int(cx_orig * model_cell_size)
+            py1 = int(cy_orig * model_cell_size)
+            px2 = px1 + model_cell_size
+            py2 = py1 + model_cell_size
+            
             # Filled rectangle on overlay
             cv2.rectangle(overlay, (px1, py1), (px2, py2), color, -1)
             # Thick border directly on frame so it's always fully visible
             cv2.rectangle(frame, (px1, py1), (px2, py2), color, 2)
 
         # Label with dark background for readability
-        center_x = int(cl["center"][0] * cell_size + cell_size // 2)
-        center_y = int(cl["center"][1] * cell_size + cell_size // 2)
+        center_x = int(cl["center"][0] * model_cell_size + model_cell_size // 2)
+        center_y = int(cl["center"][1] * model_cell_size + model_cell_size // 2)
         text = label
         (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, 0.55, 2)
         cv2.rectangle(overlay, (center_x - 22, center_y - th - 4),
@@ -208,6 +218,7 @@ def main():
     parser.add_argument("--model", required=True, help="Path to trained LSTM model (.pt)")
     parser.add_argument("--yolo", default="../models/10_epoch.pt", help="YOLO model path")
     parser.add_argument("--cell_size", type=int, default=50, help="Grid cell size")
+    parser.add_argument("--output", help="Path to save output video (e.g., output.mp4)")
     args = parser.parse_args()
 
     # Load predictor
@@ -229,9 +240,19 @@ def main():
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = cap.get(cv2.CAP_PROP_FPS)
     print(f"Video: {frame_w}x{frame_h} @ {fps:.1f} FPS, {total_frames} frames")
+    
+    writer = None
+    if args.output:
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        writer = cv2.VideoWriter(args.output, fourcc, fps, (frame_w, frame_h))
 
     # Tracking state
-    cell_size = predictor.cell_size
+    display_cell_size = args.cell_size
+    model_cell_size = predictor.cell_size
+    if display_cell_size != model_cell_size:
+        print(f"Warning: Display cell size ({display_cell_size}) differs from model's cell size ({model_cell_size}). "
+              f"Predictions will use the model's scale.")
+
     # {track_id: [(cx, cy), ...]} — unique cells per vehicle
     vehicle_cells = defaultdict(list)
     prev_cells = {}
@@ -259,10 +280,10 @@ def main():
         current_frame_ids = set()
 
         if show_grid:
-            frame = draw_grid(frame, cell_size)
+            frame = draw_grid(frame, display_cell_size)
 
         # Draw exit zones on every frame
-        frame = draw_exit_zones(frame, predictor.clusters, predictor.label_map, cell_size)
+        frame = draw_exit_zones(frame, predictor.clusters, predictor.label_map, display_cell_size, model_cell_size)
 
         # YOLO tracking
         results = yolo.track(frame, persist=True, classes=[0])
@@ -275,7 +296,9 @@ def main():
                 x1, y1, x2, y2 = map(int, box)
                 cx = (x1 + x2) // 2
                 cy = (y1 + y2) // 2
-                current_cell = pixel_to_cell(cx, cy, cell_size)
+                
+                # IMPORTANT: Map the vehicle's position into the CELL GRID the model was built for
+                current_cell = pixel_to_cell(cx, cy, model_cell_size)
                 current_frame_ids.add(tid)
 
                 # Record cell (only if different from last)
@@ -360,29 +383,38 @@ def main():
                     f"{'PAUSED' if paused else 'PLAYING'} (space)",
                     (10, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (200, 200, 200), 1)
 
-        cv2.imshow("LSTM Turn Prediction", frame)
+        if writer:
+            writer.write(frame)
+            if frame_number % 30 == 0:
+                print(f"  Processed frame {frame_number}/{total_frames}...")
+        else:
+            cv2.imshow("LSTM Turn Prediction", frame)
 
-        key = cv2.waitKey(1) & 0xFF
-        if key == ord('q'):
-            break
-        elif key == ord(' '):
-            paused = not paused
-            while paused:
-                k2 = cv2.waitKey(30) & 0xFF
-                if k2 == ord(' '):
-                    paused = False
-                    break
-                elif k2 == ord('q'):
-                    cap.release()
-                    cv2.destroyAllWindows()
-                    return
-                elif k2 == ord('g'):
-                    show_grid = not show_grid
-        elif key == ord('g'):
-            show_grid = not show_grid
+            wait_time = int(1000 / fps) if writer is None else 1
+            key = cv2.waitKey(wait_time) & 0xFF
+            if key == ord('q'):
+                break
+            elif key == ord(' '):
+                paused = not paused
+                while paused:
+                    k2 = cv2.waitKey(30) & 0xFF
+                    if k2 == ord(' '):
+                        paused = False
+                        break
+                    elif k2 == ord('q'):
+                        cap.release()
+                        cv2.destroyAllWindows()
+                        return
+                    elif k2 == ord('g'):
+                        show_grid = not show_grid
+            elif key == ord('g'):
+                show_grid = not show_grid
 
     cap.release()
-    cv2.destroyAllWindows()
+    if writer:
+        writer.release()
+    if not args.output:
+        cv2.destroyAllWindows()
 
     # Final summary
     print(f"\n{'='*50}")
