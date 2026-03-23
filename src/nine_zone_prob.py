@@ -27,6 +27,16 @@ import numpy as np
 from ultralytics import YOLO
 from collections import defaultdict
 from pathlib import Path
+from grid_utils import cell_to_id, id_to_cell
+from queue_manager import QueueManager, ExitZoneClassifier
+exit_zones = ExitZoneClassifier()
+# Define your zones — adjust cells to your video
+# exit_zones.add_zone("Left",    [(0,5),(0,6),(0,7)])
+# exit_zones.add_zone("Through", [(10,0),(11,0),(12,0)])
+# exit_zones.add_zone("Right",   [(19,5),(19,6),(19,7)])
+
+queue_mgr = QueueManager(grid_w, grid_h, exit_classifier=exit_zones)
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -70,8 +80,8 @@ def clamp_to_neighbor(from_cell, to_cell):
     return (from_cell[0] + dx, from_cell[1] + dy)
 
 
-def draw_grid(frame, cell_size, color=(150, 150, 150), thickness=1):
-    """Draw grid overlay with cell labels."""
+def draw_grid(frame, cell_size, k=None, color=(150, 150, 150), thickness=1):
+    """Draw grid overlay with linear cell ID labels (or col,row if k is None)."""
     h, w = frame.shape[:2]
     for x in range(0, w, cell_size):
         cv2.line(frame, (x, 0), (x, h), color, thickness)
@@ -83,7 +93,9 @@ def draw_grid(frame, cell_size, color=(150, 150, 150), thickness=1):
         for cy in range(0, h // cell_size, label_every):
             px = cx * cell_size + 2
             py = cy * cell_size + 12
-            cv2.putText(frame, f"{cx},{cy}", (px, py),
+            # Use linear ID when k is available, fall back to (col,row)
+            label = str(cell_to_id(cx, cy, k)) if k is not None else f"{cx},{cy}"
+            cv2.putText(frame, label, (px, py),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.3, (200, 200, 200), 1)
     return frame
 
@@ -102,8 +114,9 @@ class TransitionModel:
         (9,21)  (10,21)  (11,21)
     """
 
-    def __init__(self, cell_size):
+    def __init__(self, cell_size, grid_cols=None):
         self.cell_size = cell_size
+        self.grid_cols = grid_cols  # k = cells per row, used for linear ID encoding
 
         # {(cx,cy): {(nx,ny): count, ...}} — 9 entries per cell
         self.cells = {}
@@ -154,16 +167,22 @@ class TransitionModel:
 
     def get_probabilities(self, cell):
         """
-        Get P(c' | c) for all 9 neighbors.
+        Get P(c' | c) for all 8 neighbors with Laplace smoothing (epsilon=1).
+
+        Laplace smoothing adds 1 to every neighbor count so that no
+        transition probability is ever exactly 0.  The smoothed estimate is:
+
+            P(c' | c) = (count(c→c') + 1) / (total_transitions + num_neighbors)
 
         Returns:
-            dict: {(nx, ny): probability, ...} — 9 entries, sums to 1.0
+            dict: {(nx, ny): probability, ...} — 8 entries, sums to 1.0
         """
         self._ensure_cell(cell)
         total = self.cell_total[cell]
-        if total == 0:
-            return {n: 0.0 for n in get_neighbors(cell)}
-        return {n: self.cells[cell][n] / total for n in get_neighbors(cell)}
+        neighbors = get_neighbors(cell)
+        n = len(neighbors)  # always 8
+        # Laplace smoothing: uniform prior prevents zero probabilities
+        return {nb: (self.cells[cell][nb] + 1) / (total + n) for nb in neighbors}
 
     def get_counts(self, cell):
         """Get raw counts for all 9 neighbors."""
@@ -274,9 +293,12 @@ class TransitionModel:
                 print(f"    Cell {cell}: {count} vehicles")
 
     def save(self, filepath):
-        """Save model to JSON with coordinate-based format."""
+        """Save model to JSON using linear cell IDs as keys (instead of col,row strings)."""
+        k = self.grid_cols  # cells per row — needed for linear ID computation
+
         data = {
             "cell_size": self.cell_size,
+            "grid_cols": k,          # store k so markov_model.py can reconstruct (col,row)
             "total_transitions": self.total_transitions,
             "total_tracks_completed": self.total_tracks_completed,
             "cells": {},
@@ -285,7 +307,8 @@ class TransitionModel:
         }
 
         for cell in self.cell_total:
-            key = f"{cell[0]},{cell[1]}"
+            # Linear ID key: id = (col+1) + k*(row)  [via cell_to_id]
+            key = str(cell_to_id(cell[0], cell[1], k)) if k else f"{cell[0]},{cell[1]}"
             probs = self.get_probabilities(cell)
             counts = self.get_counts(cell)
 
@@ -295,7 +318,7 @@ class TransitionModel:
             }
 
             for neighbor, prob in probs.items():
-                n_key = f"{neighbor[0]},{neighbor[1]}"
+                n_key = str(cell_to_id(neighbor[0], neighbor[1], k)) if k else f"{neighbor[0]},{neighbor[1]}"
                 data["cells"][key]["neighbors"][n_key] = {
                     "count": int(counts[neighbor]),
                     "probability": round(prob, 4)
@@ -303,14 +326,14 @@ class TransitionModel:
 
         for ep in self.endpoints:
             data["endpoints"].append({
-                "cell": list(ep["cell"]),
+                "cell": cell_to_id(ep["cell"][0], ep["cell"][1], k) if k else list(ep["cell"]),
                 "track_id": ep["track_id"],
                 "frame": ep["frame"]
             })
 
         for sp in self.startpoints:
             data["startpoints"].append({
-                "cell": list(sp["cell"]),
+                "cell": cell_to_id(sp["cell"][0], sp["cell"][1], k) if k else list(sp["cell"]),
                 "track_id": sp["track_id"],
                 "frame": sp["frame"]
             })
@@ -407,7 +430,6 @@ def main():
     cell_size = args.cell_size
 
     yolo = YOLO(args.model_path)
-    trans = TransitionModel(cell_size)
 
     cap = cv2.VideoCapture(args.video)
     if not cap.isOpened():
@@ -419,8 +441,11 @@ def main():
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = cap.get(cv2.CAP_PROP_FPS)
     grid_w, grid_h = frame_w // cell_size, frame_h // cell_size
+    # Now that we know the grid dimensions, create TransitionModel with k=grid_w
+    trans = TransitionModel(cell_size, grid_cols=grid_w)
     print(f"Video: {frame_w}x{frame_h} @ {fps:.1f} FPS, {total_frames} frames")
     print(f"Grid: {cell_size}px cells → {grid_w} x {grid_h} = {grid_w * grid_h} total cells")
+    print(f"Linear cell IDs: k={grid_w} cells/row (id = col + {grid_w}*(row-1), 1-based)")
 
     # Tracking state
     trajectory_history = defaultdict(list)
@@ -448,7 +473,7 @@ def main():
         active_cells = []
 
         if show_grid:
-            frame = draw_grid(frame, cell_size)
+            frame = draw_grid(frame, cell_size, k=grid_w)
 
         # Run YOLO tracking
         results = yolo.track(frame, persist=True, classes=[0])
@@ -482,13 +507,15 @@ def main():
                 # Draw tracking info
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
                 cv2.circle(frame, (cx, cy), 4, (0, 0, 255), -1)
-                cv2.putText(frame, f"ID:{tid} ({current_cell[0]},{current_cell[1]})",
+                cell_id = cell_to_id(current_cell[0], current_cell[1], grid_w)
+                cv2.putText(frame, f"ID:{tid} cell:{cell_id}",
                             (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
 
-                # Show most likely next cell
+                # Show most likely next cell as linear ID
                 next_cell, prob = trans.get_most_likely_next(current_cell)
                 if next_cell and prob > 0.3:
-                    cv2.putText(frame, f"next:({next_cell[0]},{next_cell[1]}) {prob:.0%}",
+                    next_id = cell_to_id(next_cell[0], next_cell[1], grid_w)
+                    cv2.putText(frame, f"next:{next_id} {prob:.0%}",
                                 (x1, y2 + 18), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 0), 1)
 
         # Detect disappeared tracks
@@ -557,7 +584,7 @@ def main():
                     if ret_step:
                         frame_number += 1
                         if show_grid:
-                            frame_step = draw_grid(frame_step, cell_size)
+                            frame_step = draw_grid(frame_step, cell_size, k=grid_w)
                         if show_flow and trans.total_transitions > 0:
                             frame_step = draw_flow_arrows(frame_step, trans, cell_size)
                             frame_step = draw_endpoints(frame_step, trans, cell_size)
@@ -570,7 +597,7 @@ def main():
                     if ret_step:
                         frame_number += 1
                         if show_grid:
-                            frame_step = draw_grid(frame_step, cell_size)
+                            frame_step = draw_grid(frame_step, cell_size, k=grid_w)
                         if show_flow and trans.total_transitions > 0:
                             frame_step = draw_flow_arrows(frame_step, trans, cell_size)
                             frame_step = draw_endpoints(frame_step, trans, cell_size)
@@ -618,12 +645,11 @@ def main():
                 cells_seq.append(cell)
 
         if len(cells_seq) >= 3:  # Only keep meaningful trajectories
-            # Find endpoint cell
-            last_cell = cells_seq[-1]
             trajectories_data[str(tid)] = {
-                "cells": [list(c) for c in cells_seq],
-                "start": list(cells_seq[0]),
-                "end": list(cells_seq[-1]),
+                # Store cells as linear IDs (single integers) instead of [col,row] pairs
+                "cells": [cell_to_id(c[0], c[1], grid_w) for c in cells_seq],
+                "start": cell_to_id(cells_seq[0][0], cells_seq[0][1], grid_w),
+                "end": cell_to_id(cells_seq[-1][0], cells_seq[-1][1], grid_w),
                 "length": len(cells_seq)
             }
 
@@ -633,6 +659,7 @@ def main():
     with open(str(traj_path), 'w') as f:
         json.dump({
             "cell_size": cell_size,
+            "grid_cols": grid_w,   # k stored so lstm_predictor.py can reconstruct (col,row)
             "total_tracks": len(trajectories_data),
             "trajectories": trajectories_data
         }, f, indent=2)

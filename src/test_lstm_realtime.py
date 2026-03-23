@@ -85,6 +85,13 @@ def draw_grid(frame, cell_size, color=(100, 100, 100), thickness=1):
         cv2.line(frame, (x, 0), (x, h), color, thickness)
     for y in range(0, h, cell_size):
         cv2.line(frame, (0, y), (w, y), color, thickness)
+        
+    # DEBUG: Draw cell coordinates to help align priors
+    for y in range(0, h, cell_size):
+        for x in range(0, w, cell_size):
+            cx, cy = x // cell_size, y // cell_size
+            cv2.putText(frame, f"{cx},{cy}", (x+2, y+12), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (150,150,150), 1)
+    
     return frame
 
 
@@ -157,6 +164,10 @@ class RealtimePredictor:
         self.inv_label_map = {v: k for k, v in self.label_map.items()}
         self.clusters = checkpoint["clusters"]
         self.cell_size = checkpoint["cell_size"]
+        self.wait_priors = {}
+        if "wait_priors" in checkpoint:
+            for item in checkpoint["wait_priors"]:
+                self.wait_priors[tuple(item["cell"])] = item["probs"]
         config = checkpoint["model_config"]
 
         # Build and load model
@@ -189,6 +200,16 @@ class RealtimePredictor:
             or (None, 0, {}) if not enough data yet
         """
         if len(cell_sequence) < self.min_steps:
+            if len(cell_sequence) > 0:
+                # Car is stationary/just spawned: Use wait prior if available
+                start_cell = tuple(cell_sequence[0])
+                if start_cell in self.wait_priors:
+                    probs = self.wait_priors[start_cell]
+                    pred_label = max(probs, key=probs.get)
+                    confidence = probs[pred_label]
+                    return pred_label, confidence, probs
+                else:
+                    print(f"DEBUG: wait prior missed for {start_cell}. Sample valid keys: {list(self.wait_priors.keys())[:5]}")
             return None, 0.0, {}
 
         features = trajectory_to_features(cell_sequence)
@@ -306,7 +327,7 @@ def main():
                     vehicle_cells[tid].append(current_cell)
                 prev_cells[tid] = current_cell
 
-                # Run LSTM prediction
+                # Run LSTM prediction (evaluate every frame to catch priors immediately)
                 cells_seq = vehicle_cells[tid]
                 pred_label, confidence, all_probs = predictor.predict(cells_seq)
 
@@ -318,22 +339,21 @@ def main():
                         "steps": len(cells_seq)
                     }
 
-                # ── Draw vehicle ──────────────────────────────────────
-                # Color by prediction
                 if tid in predictions:
                     pred = predictions[tid]
                     label_idx = predictor.label_map.get(pred["label"], 0)
                     color = EXIT_COLORS[label_idx % len(EXIT_COLORS)]
                     conf = pred["confidence"]
+                    steps_text = "prior" if pred["steps"] < 3 else f"{pred['steps']} steps"
 
                     # Bounding box colored by predicted exit
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
                     # Prediction text
-                    cv2.putText(frame, f"ID:{tid} → {pred['label']}",
+                    cv2.putText(frame, f"ID:{tid} {pred['label']}",
                                 (x1, y1 - 25), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.5, color, 2)
-                    cv2.putText(frame, f"{conf:.0%} ({pred['steps']} steps)",
+                    cv2.putText(frame, f"{conf:.0%} ({steps_text})",
                                 (x1, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.4, (200, 200, 200), 1)
 
@@ -342,7 +362,7 @@ def main():
                     cv2.rectangle(frame, (x1, y2 + 4), (x1 + bar_w, y2 + 12), color, -1)
                     cv2.rectangle(frame, (x1, y2 + 4), (x1 + 60, y2 + 12), color, 1)
                 else:
-                    # Not enough data yet
+                    # Not enough data yet and no prior available
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (128, 128, 128), 1)
                     cv2.putText(frame, f"ID:{tid} (waiting...)",
                                 (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX,

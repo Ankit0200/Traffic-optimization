@@ -19,6 +19,7 @@ import argparse
 import numpy as np
 from collections import defaultdict
 from pathlib import Path
+from grid_utils import cell_to_id, id_to_cell
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -31,12 +32,23 @@ def load_transitions(filepath):
         data = json.load(f)
 
     cell_size = data["cell_size"]
+    grid_cols = data.get("grid_cols")  # k = cells per row; present in new-format files
+
     cells = {}
     for key, val in data["cells"].items():
-        cx, cy = map(int, key.split(","))
+        # Support both new format (linear ID string like "42") and
+        # old format ("col,row" string like "3,6")
+        if "," in key:
+            cx, cy = map(int, key.split(","))
+        else:
+            cx, cy = id_to_cell(int(key), grid_cols)
+
         neighbors = {}
         for n_key, n_val in val["neighbors"].items():
-            nx, ny = map(int, n_key.split(","))
+            if "," in n_key:
+                nx, ny = map(int, n_key.split(","))
+            else:
+                nx, ny = id_to_cell(int(n_key), grid_cols)
             neighbors[(nx, ny)] = {
                 "count": n_val["count"],
                 "probability": n_val["probability"]
@@ -48,22 +60,34 @@ def load_transitions(filepath):
 
     endpoints = []
     for ep in data["endpoints"]:
+        # Support both new format (single linear ID int) and old format ([col, row] list)
+        raw_cell = ep["cell"]
+        if isinstance(raw_cell, list):
+            cell_tuple = tuple(raw_cell)
+        else:
+            cell_tuple = id_to_cell(raw_cell, grid_cols)
         endpoints.append({
-            "cell": tuple(ep["cell"]),
+            "cell": cell_tuple,
             "track_id": ep["track_id"],
             "frame": ep["frame"]
         })
 
     startpoints = []
     for sp in data["startpoints"]:
+        raw_cell = sp["cell"]
+        if isinstance(raw_cell, list):
+            cell_tuple = tuple(raw_cell)
+        else:
+            cell_tuple = id_to_cell(raw_cell, grid_cols)
         startpoints.append({
-            "cell": tuple(sp["cell"]),
+            "cell": cell_tuple,
             "track_id": sp["track_id"],
             "frame": sp["frame"]
         })
 
     print(f"Loaded: {len(cells)} cells, {len(endpoints)} endpoints, {len(startpoints)} startpoints")
-    return cell_size, cells, endpoints, startpoints
+    print(f"Format: {'linear IDs (k=' + str(grid_cols) + ')' if grid_cols else 'col,row strings'}")
+    return cell_size, cells, endpoints, startpoints, grid_cols
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -91,13 +115,27 @@ class MarkovChain:
         print(f"Markov chain: {len(self.all_states)} total states")
 
     def get_transition_probs(self, cell):
-        """Get P(c'|c) for a cell. Returns dict of {neighbor: prob}."""
-        if cell not in self.cells or self.cells[cell]["total"] == 0:
+        """
+        Get P(c'|c) for a cell with Laplace smoothing (epsilon=1).
+
+        Smoothing ensures no transition is ever given probability exactly 0,
+        which prevents absorbing states from starving paths during simulation.
+
+            P(c'|c) = (count(c->c') + 1) / (total + num_neighbors)
+
+        Returns dict of {neighbor: smoothed_probability}.
+        """
+        if cell not in self.cells:
             return {}
+        neighbors = self.cells[cell]["neighbors"]
+        total = self.cells[cell]["total"]
+        n = len(neighbors)
+        if n == 0:
+            return {}
+        # Laplace smoothing: recompute from raw counts
         return {
-            n: v["probability"]
-            for n, v in self.cells[cell]["neighbors"].items()
-            if v["probability"] > 0
+            nc: (v["count"] + 1) / (total + n)
+            for nc, v in neighbors.items()
         }
 
     def simulate_path(self, start_cell, max_steps=100):
@@ -354,10 +392,11 @@ def print_report(cells, exit_clusters, exit_probs, startpoints):
 # STEP 6: Save trained model
 # ═══════════════════════════════════════════════════════════════════════════
 
-def save_model(filepath, cell_size, exit_clusters, exit_probs, cells):
+def save_model(filepath, cell_size, exit_clusters, exit_probs, cells, grid_cols=None):
     """Save the trained Markov model for real-time use."""
     model_data = {
         "cell_size": cell_size,
+        "grid_cols": grid_cols,   # k for linear ID reconstruction
         "exit_zones": [],
         "cell_predictions": {},
         "flow_chains": {}
@@ -372,9 +411,13 @@ def save_model(filepath, cell_size, exit_clusters, exit_probs, cells):
             "count": cl["count"]
         })
 
+    def _cell_key(cell):
+        """Return linear ID string if grid_cols known, else fall back to col,row."""
+        return str(cell_to_id(cell[0], cell[1], grid_cols)) if grid_cols else f"{cell[0]},{cell[1]}"
+
     # P(exit | cell) for each cell
     for cell, probs in exit_probs.items():
-        key = f"{cell[0]},{cell[1]}"
+        key = _cell_key(cell)
         model_data["cell_predictions"][key] = {
             k: round(v, 4) for k, v in probs.items() if v > 0.01
         }
@@ -383,7 +426,7 @@ def save_model(filepath, cell_size, exit_clusters, exit_probs, cells):
     for cell, data in cells.items():
         if data["total"] < 2:
             continue
-        key = f"{cell[0]},{cell[1]}"
+        key = _cell_key(cell)
         best_neighbor = None
         best_prob = 0
         for n, v in data["neighbors"].items():
@@ -416,7 +459,7 @@ def main():
 
     # Step 1: Load data
     print("\n── Step 1: Loading transition data ──")
-    cell_size, cells, endpoints, startpoints = load_transitions(args.data)
+    cell_size, cells, endpoints, startpoints, grid_cols = load_transitions(args.data)
 
     # Step 2: Build Markov chain
     print("\n── Step 2: Building Markov chain ──")
@@ -441,7 +484,7 @@ def main():
 
     # Step 6: Save model
     output_path = Path(args.data).stem + "_markov_model.json"
-    save_model(output_path, cell_size, exit_clusters, exit_probs, cells)
+    save_model(output_path, cell_size, exit_clusters, exit_probs, cells, grid_cols=grid_cols)
 
     print(f"\n{'='*70}")
     print(f"  DONE! Model ready for real-time prediction.")

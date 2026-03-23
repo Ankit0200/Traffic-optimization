@@ -16,6 +16,7 @@ import argparse
 import numpy as np
 from collections import defaultdict
 from pathlib import Path
+from grid_utils import id_to_cell
 
 import torch
 import torch.nn as nn
@@ -30,10 +31,42 @@ from sklearn.metrics import classification_report, confusion_matrix
 # ═══════════════════════════════════════════════════════════════════════════
 
 def load_trajectories(filepath):
+    """Load trajectory JSON and return (cell_size, trajectories).
+
+    Supports both formats:
+      - New format: cells stored as linear integer IDs (requires grid_cols in JSON)
+      - Old format: cells stored as [col, row] lists
+
+    In both cases, returns cells as (col, row) tuples so all downstream
+    code (clustering, feature engineering, training) is unchanged.
+    """
     with open(filepath, 'r') as f:
         data = json.load(f)
-    print(f"Loaded {data['total_tracks']} trajectories, cell_size={data['cell_size']}")
-    return data["cell_size"], data["trajectories"]
+
+    k = data.get("grid_cols")   # cells per row; present only in new-format files
+    print(f"Loaded {data['total_tracks']} trajectories, "
+          f"cell_size={data['cell_size']}, "
+          f"grid_cols={k if k else 'N/A (old format)'}")
+
+    trajectories = {}
+    for tid, traj in data["trajectories"].items():
+        cells_raw = traj["cells"]
+        # Detect format from first element
+        if cells_raw and isinstance(cells_raw[0], int):
+            # New format: list of linear IDs  →  convert to (col, row) tuples
+            cell_tuples = [id_to_cell(c, k) for c in cells_raw]
+        else:
+            # Old format: list of [col, row] pairs  →  just convert to tuples
+            cell_tuples = [tuple(c) for c in cells_raw]
+
+        trajectories[tid] = {
+            "cells": cell_tuples,
+            "start": list(cell_tuples[0]) if cell_tuples else traj.get("start"),
+            "end":   list(cell_tuples[-1]) if cell_tuples else traj.get("end"),
+            "length": traj["length"]
+        }
+
+    return data["cell_size"], trajectories
 
 
 def cluster_endpoints(trajectories, radius=4):
@@ -231,6 +264,26 @@ class TurnPredictor(nn.Module):
 # STEP 5: Training with data augmentation
 # ═══════════════════════════════════════════════════════════════════════════
 
+def compute_wait_priors(labeled_data):
+    """
+    Calculate the historical probability of taking each exit given a start cell.
+    Returns: { (start_x, start_y): { "exit_0": prob, ... }, ... }
+    """
+    start_counts = defaultdict(lambda: defaultdict(int))
+    for item in labeled_data:
+        start_cell = tuple(item["cells"][0])
+        label = item["label"]
+        start_counts[start_cell][label] += 1
+        
+    wait_priors = {}
+    for cell, counts in start_counts.items():
+        total = sum(counts.values())
+        wait_priors[cell] = {label: count / total for label, count in counts.items()}
+    
+    print(f"Computed wait priors for {len(wait_priors)} distinct start cells.")
+    return wait_priors
+
+
 def augment_partial_trajectories(labeled_data, min_steps=3):
     """
     Data augmentation: for each full trajectory, create partial versions.
@@ -380,8 +433,12 @@ def evaluate_early_prediction(model, labeled_data, label_map, device='cpu'):
 # STEP 7: Save model for real-time use
 # ═══════════════════════════════════════════════════════════════════════════
 
-def save_model(model, label_map, clusters, cell_size, filepath):
+def save_model(model, label_map, clusters, cell_size, wait_priors, filepath):
     """Save trained model and metadata."""
+    # Convert wait_priors keys to string because JSON/torch.load might struggle with tuple keys if we serialize differently,
+    # actually torch.save handles tuple keys fine. But let's just make it a list of items to be safe.
+    wait_priors_serializable = [{"cell": list(k), "probs": v} for k, v in wait_priors.items()]
+
     torch.save({
         "model_state": model.state_dict(),
         "label_map": label_map,
@@ -391,6 +448,7 @@ def save_model(model, label_map, clusters, cell_size, filepath):
             for c in clusters
         ],
         "cell_size": cell_size,
+        "wait_priors": wait_priors_serializable,
         "model_config": {
             "input_size": 4,
             "hidden_size": 64,
@@ -451,6 +509,10 @@ def main():
     label_map = {label: idx for idx, label in enumerate(labels_list)}
     print(f"Label map: {label_map}")
 
+    # Step 3.5: Compute wait priors
+    print("\n── Step 3.5: Computing wait priors ──")
+    wait_priors = compute_wait_priors(labeled)
+
     # Step 4: Augment with partial trajectories
     print("\n── Step 4: Augmenting data ──")
     aug_seqs, aug_labels = augment_partial_trajectories(labeled, min_steps=3)
@@ -502,7 +564,7 @@ def main():
     out_dir_lstm = Path("models/lstm")
     out_dir_lstm.mkdir(parents=True, exist_ok=True)
     model_path = out_dir_lstm / (Path(args.data).stem + "_lstm_model.pt")
-    save_model(model, label_map, clusters, cell_size, str(model_path))
+    save_model(model, label_map, clusters, cell_size, wait_priors, str(model_path))
 
     print(f"\n  To use in real-time:")
     print(f"    1. Load model from '{model_path}'")
