@@ -85,13 +85,13 @@ def draw_grid(frame, cell_size, color=(100, 100, 100), thickness=1):
         cv2.line(frame, (x, 0), (x, h), color, thickness)
     for y in range(0, h, cell_size):
         cv2.line(frame, (0, y), (w, y), color, thickness)
-        
+
     # DEBUG: Draw cell coordinates to help align priors
     for y in range(0, h, cell_size):
         for x in range(0, w, cell_size):
             cx, cy = x // cell_size, y // cell_size
             cv2.putText(frame, f"{cx},{cy}", (x+2, y+12), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (150,150,150), 1)
-    
+
     return frame
 
 
@@ -111,34 +111,24 @@ EXIT_COLORS = [
 def draw_exit_zones(frame, clusters, label_map, display_cell_size, model_cell_size, alpha=0.45):
     """Draw highlighted colored rectangles on exit zone cells with borders."""
     overlay = frame.copy()
-    
-    # Scale factor from training cell size to display cell size
-    scale = model_cell_size / display_cell_size if display_cell_size > 0 else 1.0
 
     for cl in clusters:
         label = cl["label"]
         idx = label_map.get(label, 0)
         color = EXIT_COLORS[idx % len(EXIT_COLORS)]
-        
-        # Scale cells
+
         cells = cl["cells"]
 
         for c in cells:
-            # The cell coordinate in the original training grid
             cx_orig, cy_orig = c[0], c[1]
-            
-            # Map it to pixel coordinates using the original cell_size it was trained on
             px1 = int(cx_orig * model_cell_size)
             py1 = int(cy_orig * model_cell_size)
             px2 = px1 + model_cell_size
             py2 = py1 + model_cell_size
-            
-            # Filled rectangle on overlay
+
             cv2.rectangle(overlay, (px1, py1), (px2, py2), color, -1)
-            # Thick border directly on frame so it's always fully visible
             cv2.rectangle(frame, (px1, py1), (px2, py2), color, 2)
 
-        # Label with dark background for readability
         center_x = int(cl["center"][0] * model_cell_size + model_cell_size // 2)
         center_y = int(cl["center"][1] * model_cell_size + model_cell_size // 2)
         text = label
@@ -158,7 +148,6 @@ def draw_exit_zones(frame, clusters, label_map, display_cell_size, model_cell_si
 
 class RealtimePredictor:
     def __init__(self, model_path, device='cpu'):
-        # Load saved model
         checkpoint = torch.load(model_path, map_location=device, weights_only=False)
         self.label_map = checkpoint["label_map"]
         self.inv_label_map = {v: k for k, v in self.label_map.items()}
@@ -168,9 +157,10 @@ class RealtimePredictor:
         if "wait_priors" in checkpoint:
             for item in checkpoint["wait_priors"]:
                 self.wait_priors[tuple(item["cell"])] = item["probs"]
+        raw_qz = checkpoint.get("queue_zones", {})
+        self.queue_zones = {k: [tuple(c) for c in v] for k, v in raw_qz.items()}
         config = checkpoint["model_config"]
 
-        # Build and load model
         self.model = TurnPredictor(
             input_size=config["input_size"],
             hidden_size=config["hidden_size"],
@@ -182,7 +172,7 @@ class RealtimePredictor:
         self.device = device
         self.model.to(device)
 
-        self.min_steps = 3  # Minimum steps before predicting
+        self.min_steps = 3
 
         print(f"Model loaded: {len(self.label_map)} exit classes")
         for cl in self.clusters:
@@ -192,16 +182,12 @@ class RealtimePredictor:
         """
         Predict exit from a partial cell sequence.
 
-        Args:
-            cell_sequence: list of (cx, cy) tuples
-
         Returns:
             (predicted_label, confidence, all_probabilities)
             or (None, 0, {}) if not enough data yet
         """
         if len(cell_sequence) < self.min_steps:
             if len(cell_sequence) > 0:
-                # Car is stationary/just spawned: Use wait prior if available
                 start_cell = tuple(cell_sequence[0])
                 if start_cell in self.wait_priors:
                     probs = self.wait_priors[start_cell]
@@ -261,7 +247,7 @@ def main():
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     fps = cap.get(cv2.CAP_PROP_FPS)
     print(f"Video: {frame_w}x{frame_h} @ {fps:.1f} FPS, {total_frames} frames")
-    
+
     writer = None
     if args.output:
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -270,9 +256,6 @@ def main():
     # Tracking state
     display_cell_size = args.cell_size
     model_cell_size = predictor.cell_size
-    if display_cell_size != model_cell_size:
-        print(f"Warning: Display cell size ({display_cell_size}) differs from model's cell size ({model_cell_size}). "
-              f"Predictions will use the model's scale.")
 
     # {track_id: [(cx, cy), ...]} — unique cells per vehicle
     vehicle_cells = defaultdict(list)
@@ -281,11 +264,10 @@ def main():
     frame_number = 0
 
     # Prediction results per vehicle
-    # {track_id: {"label": str, "confidence": float, "probs": dict}}
     predictions = {}
 
     # Stats
-    stats = {"total_predicted": 0, "correct": 0}
+    stats = {"total_predicted": 0}
 
     show_grid = False
     paused = False
@@ -317,8 +299,7 @@ def main():
                 x1, y1, x2, y2 = map(int, box)
                 cx = (x1 + x2) // 2
                 cy = (y1 + y2) // 2
-                
-                # IMPORTANT: Map the vehicle's position into the CELL GRID the model was built for
+
                 current_cell = pixel_to_cell(cx, cy, model_cell_size)
                 current_frame_ids.add(tid)
 
@@ -327,7 +308,7 @@ def main():
                     vehicle_cells[tid].append(current_cell)
                 prev_cells[tid] = current_cell
 
-                # Run LSTM prediction (evaluate every frame to catch priors immediately)
+                # Run LSTM prediction
                 cells_seq = vehicle_cells[tid]
                 pred_label, confidence, all_probs = predictor.predict(cells_seq)
 
@@ -346,10 +327,8 @@ def main():
                     conf = pred["confidence"]
                     steps_text = "prior" if pred["steps"] < 3 else f"{pred['steps']} steps"
 
-                    # Bounding box colored by predicted exit
                     cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
-                    # Prediction text
                     cv2.putText(frame, f"ID:{tid} {pred['label']}",
                                 (x1, y1 - 25), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.5, color, 2)
@@ -357,18 +336,15 @@ def main():
                                 (x1, y1 - 8), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.4, (200, 200, 200), 1)
 
-                    # Confidence bar
                     bar_w = int(conf * 60)
                     cv2.rectangle(frame, (x1, y2 + 4), (x1 + bar_w, y2 + 12), color, -1)
                     cv2.rectangle(frame, (x1, y2 + 4), (x1 + 60, y2 + 12), color, 1)
                 else:
-                    # Not enough data yet and no prior available
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (128, 128, 128), 1)
                     cv2.putText(frame, f"ID:{tid} (waiting...)",
                                 (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.4, (128, 128, 128), 1)
 
-                # Center dot
                 cv2.circle(frame, (cx, cy), 3, (0, 0, 255), -1)
 
         # Detect disappeared tracks — log final prediction

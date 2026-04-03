@@ -28,14 +28,6 @@ from ultralytics import YOLO
 from collections import defaultdict
 from pathlib import Path
 from grid_utils import cell_to_id, id_to_cell
-from queue_manager import QueueManager, ExitZoneClassifier
-exit_zones = ExitZoneClassifier()
-# Define your zones — adjust cells to your video
-# exit_zones.add_zone("Left",    [(0,5),(0,6),(0,7)])
-# exit_zones.add_zone("Through", [(10,0),(11,0),(12,0)])
-# exit_zones.add_zone("Right",   [(19,5),(19,6),(19,7)])
-
-queue_mgr = QueueManager(grid_w, grid_h, exit_classifier=exit_zones)
 
 
 

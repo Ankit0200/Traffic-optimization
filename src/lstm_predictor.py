@@ -284,6 +284,91 @@ def compute_wait_priors(labeled_data):
     return wait_priors
 
 
+def discover_queue_zones(trajectories, radius=4, min_count=3):
+    """
+    Auto-discover queue zones from trajectory entry regions.
+
+    Collects the first N cells of every trajectory (where vehicles enter the
+    scene from an approach edge) and clusters them spatially. Each cluster
+    near an edge becomes that approach's queue zone.
+
+    Also includes any cell that appears in the first-third of multiple
+    trajectories — these are the approach corridors where vehicles queue.
+
+    Returns: {approach: set of (cx, cy) cells}
+    """
+    if not trajectories:
+        return {}
+
+    all_cells = [c for traj in trajectories.values() for c in traj["cells"]]
+    grid_w = max(c[0] for c in all_cells) + 1
+    grid_h = max(c[1] for c in all_cells) + 1
+
+    # Collect entry region cells: first 1/3 of each trajectory (approach corridor)
+    entry_counts = defaultdict(int)
+    for traj in trajectories.values():
+        cells = traj["cells"]
+        entry_len = max(1, len(cells) // 3)
+        for c in cells[:entry_len]:
+            entry_counts[c] += 1
+
+    if not entry_counts:
+        print("  No entry cells found — queue zones not discovered.")
+        return {}
+
+    print(f"  Entry region cells: {len(entry_counts)} distinct cells across all trajectories.")
+
+    # Only keep cells that appear in multiple trajectories (shared approach corridor)
+    frequent = {c: n for c, n in entry_counts.items() if n >= 2}
+    if not frequent:
+        frequent = entry_counts  # fallback: use all
+
+    # Cluster by proximity
+    sorted_cells = sorted(frequent.items(), key=lambda x: x[1], reverse=True)
+    assigned = set()
+    raw_clusters = []
+
+    for cell, count in sorted_cells:
+        if cell in assigned:
+            continue
+        cluster_cells = {}
+        for other_cell, other_count in sorted_cells:
+            if other_cell in assigned:
+                continue
+            if abs(cell[0] - other_cell[0]) + abs(cell[1] - other_cell[1]) <= radius:
+                cluster_cells[other_cell] = other_count
+                assigned.add(other_cell)
+        total = sum(cluster_cells.values())
+        if total >= min_count:
+            cx = np.mean([c[0] for c in cluster_cells])
+            cy = np.mean([c[1] for c in cluster_cells])
+            raw_clusters.append({
+                "center": (cx, cy),
+                "cells": set(cluster_cells.keys()),
+                "count": total
+            })
+
+    # Assign each cluster to nearest approach edge; skip central clusters
+    edge_limit = min(grid_w, grid_h) * 0.45
+    queue_zones = defaultdict(set)
+
+    for cluster in raw_clusters:
+        cx, cy = cluster["center"]
+        dists = {"SB": cy, "NB": grid_h - cy, "EB": cx, "WB": grid_w - cx}
+        nearest = min(dists, key=dists.get)
+        if dists[nearest] > edge_limit:
+            continue  # too central — skip
+        queue_zones[nearest].update(cluster["cells"])
+
+    result = dict(queue_zones)
+    if result:
+        for approach, cells in sorted(result.items()):
+            print(f"  Queue zone {approach}: {len(cells)} cells, sample={sorted(cells)[:3]}")
+    else:
+        print("  No queue zones discovered (all clusters too central).")
+    return result
+
+
 def augment_partial_trajectories(labeled_data, min_steps=3):
     """
     Data augmentation: for each full trajectory, create partial versions.
@@ -433,11 +518,13 @@ def evaluate_early_prediction(model, labeled_data, label_map, device='cpu'):
 # STEP 7: Save model for real-time use
 # ═══════════════════════════════════════════════════════════════════════════
 
-def save_model(model, label_map, clusters, cell_size, wait_priors, filepath):
+def save_model(model, label_map, clusters, cell_size, wait_priors, queue_zones, filepath):
     """Save trained model and metadata."""
-    # Convert wait_priors keys to string because JSON/torch.load might struggle with tuple keys if we serialize differently,
-    # actually torch.save handles tuple keys fine. But let's just make it a list of items to be safe.
     wait_priors_serializable = [{"cell": list(k), "probs": v} for k, v in wait_priors.items()]
+    queue_zones_serializable = {
+        approach: [list(c) for c in cells]
+        for approach, cells in queue_zones.items()
+    }
 
     torch.save({
         "model_state": model.state_dict(),
@@ -449,6 +536,7 @@ def save_model(model, label_map, clusters, cell_size, wait_priors, filepath):
         ],
         "cell_size": cell_size,
         "wait_priors": wait_priors_serializable,
+        "queue_zones": queue_zones_serializable,
         "model_config": {
             "input_size": 4,
             "hidden_size": 64,
@@ -513,6 +601,10 @@ def main():
     print("\n── Step 3.5: Computing wait priors ──")
     wait_priors = compute_wait_priors(labeled)
 
+    # Step 3.6: Auto-discover queue zones from stop events
+    print("\n── Step 3.6: Discovering queue zones ──")
+    queue_zones = discover_queue_zones(trajectories)
+
     # Step 4: Augment with partial trajectories
     print("\n── Step 4: Augmenting data ──")
     aug_seqs, aug_labels = augment_partial_trajectories(labeled, min_steps=3)
@@ -564,7 +656,7 @@ def main():
     out_dir_lstm = Path("models/lstm")
     out_dir_lstm.mkdir(parents=True, exist_ok=True)
     model_path = out_dir_lstm / (Path(args.data).stem + "_lstm_model.pt")
-    save_model(model, label_map, clusters, cell_size, wait_priors, str(model_path))
+    save_model(model, label_map, clusters, cell_size, wait_priors, queue_zones, str(model_path))
 
     print(f"\n  To use in real-time:")
     print(f"    1. Load model from '{model_path}'")
