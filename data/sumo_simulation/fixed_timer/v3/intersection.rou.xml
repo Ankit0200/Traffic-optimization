@@ -1,0 +1,52 @@
+<routes>
+    <!-- ============================================================ -->
+    <!-- SCENARIO v3: Morning CBD Rush (NYC/Manhattan-style)          -->
+    <!-- Heavy N/S commuter flow, light E/W cross-streets             -->
+    <!-- Based on: Manhattan morning peak directional split (65-70%   -->
+    <!--   inbound) with typical 70% through, 15% left, 15% right    -->
+    <!-- N/S: 0.6 veh/s (heavy commuter corridor)                    -->
+    <!-- E/W: 0.15 veh/s (minor cross-streets)                       -->
+    <!-- Duration: 180s steady state                                  -->
+    <!-- Source: NYC DOT Traffic Volume Counts, HCM PHF=0.92          -->
+    <!-- ============================================================ -->
+
+    <vType id="car"   length="5.0"  width="2.0" minGap="2.5" maxSpeed="8.33" accel="2.0" decel="4.5" sigma="0.5"
+           guiShape="passenger" color="0.8,0.1,0.1"/>
+    <vType id="van"   length="5.75" width="2.2" minGap="2.5" maxSpeed="7.50" accel="1.8" decel="4.0" sigma="0.5"
+           guiShape="delivery" color="0.9,0.8,0.3"/>
+    <vType id="truck" length="10.0" width="2.5" minGap="3.0" maxSpeed="6.94" accel="1.2" decel="3.5" sigma="0.5"
+           guiShape="truck" color="0.6,0.4,0.2"/>
+
+    <route id="N_through" edges="N_to_C C_to_S"/>
+    <route id="N_left"    edges="N_to_C C_to_E"/>
+    <route id="N_right"   edges="N_to_C C_to_W"/>
+    <route id="S_through" edges="S_to_C C_to_N"/>
+    <route id="S_left"    edges="S_to_C C_to_W"/>
+    <route id="S_right"   edges="S_to_C C_to_E"/>
+    <route id="E_through" edges="E_to_C C_to_W"/>
+    <route id="E_left"    edges="E_to_C C_to_S"/>
+    <route id="E_right"   edges="E_to_C C_to_N"/>
+    <route id="W_through" edges="W_to_C C_to_E"/>
+    <route id="W_left"    edges="W_to_C C_to_N"/>
+    <route id="W_right"   edges="W_to_C C_to_S"/>
+
+    <!-- North: 0.6 veh/s (70% through, 15% left, 15% right) -->
+    <flow id="N_through" route="N_through" begin="0" end="180" probability="0.42" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N_left"    route="N_left"    begin="0" end="180" probability="0.09" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N_right"   route="N_right"   begin="0" end="180" probability="0.09" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- South: 0.6 veh/s -->
+    <flow id="S_through" route="S_through" begin="0" end="180" probability="0.42" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S_left"    route="S_left"    begin="0" end="180" probability="0.09" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S_right"   route="S_right"   begin="0" end="180" probability="0.09" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- East: 0.15 veh/s (minor cross-street) -->
+    <flow id="E_through" route="E_through" begin="0" end="180" probability="0.105" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E_left"    route="E_left"    begin="0" end="180" probability="0.023" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E_right"   route="E_right"   begin="0" end="180" probability="0.023" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- West: 0.15 veh/s -->
+    <flow id="W_through" route="W_through" begin="0" end="180" probability="0.105" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W_left"    route="W_left"    begin="0" end="180" probability="0.023" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W_right"   route="W_right"   begin="0" end="180" probability="0.023" departLane="best" departSpeed="desired" type="car"/>
+</routes>

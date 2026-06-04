@@ -1,0 +1,15 @@
+<viewsettings>
+    <scheme name="real world">
+        <background backgroundColor="0.60,0.75,0.45" showGrid="0"/>
+        <edges laneShowBorders="1" showLinkDecals="1" showLinkRules="1"
+               edgeColorer="uniform" laneEdgeColor="0.30,0.30,0.30"/>
+        <vehicles vehicleMode="0" vehicleQuality="3" vehicle_minSize="2.5"
+                  vehicleName_show="0" vehicleName_size="40"/>
+        <junctions junctionMode="0" junctionSize="1"
+                   drawLinkTLIndex="0" drawLinkJunctionIndex="0"
+                   junctionName_show="0"
+                   tlsPhaseIndex_show="0"
+                   showLane2Lane="0"/>
+    </scheme>
+    <delay value="50"/>
+</viewsettings>

@@ -24,6 +24,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence
 from ultralytics import YOLO
+from queue_manager import QueueManager
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -86,7 +87,6 @@ def draw_grid(frame, cell_size, color=(100, 100, 100), thickness=1):
     for y in range(0, h, cell_size):
         cv2.line(frame, (0, y), (w, y), color, thickness)
 
-    # DEBUG: Draw cell coordinates to help align priors
     for y in range(0, h, cell_size):
         for x in range(0, w, cell_size):
             cx, cy = x // cell_size, y // cell_size
@@ -157,8 +157,6 @@ class RealtimePredictor:
         if "wait_priors" in checkpoint:
             for item in checkpoint["wait_priors"]:
                 self.wait_priors[tuple(item["cell"])] = item["probs"]
-        raw_qz = checkpoint.get("queue_zones", {})
-        self.queue_zones = {k: [tuple(c) for c in v] for k, v in raw_qz.items()}
         config = checkpoint["model_config"]
 
         self.model = TurnPredictor(
@@ -194,8 +192,6 @@ class RealtimePredictor:
                     pred_label = max(probs, key=probs.get)
                     confidence = probs[pred_label]
                     return pred_label, confidence, probs
-                else:
-                    print(f"DEBUG: wait prior missed for {start_cell}. Sample valid keys: {list(self.wait_priors.keys())[:5]}")
             return None, 0.0, {}
 
         features = trajectory_to_features(cell_sequence)
@@ -226,9 +222,10 @@ def main():
     parser.add_argument("--yolo", default="../models/10_epoch.pt", help="YOLO model path")
     parser.add_argument("--cell_size", type=int, default=50, help="Grid cell size")
     parser.add_argument("--output", help="Path to save output video (e.g., output.mp4)")
+    parser.add_argument("--trajectories", help="Path to trajectories JSON (for queue manager bootstrap)")
     args = parser.parse_args()
 
-    # Load predictor
+    # Load predictor (LSTM — independent exit prediction)
     print("\n── Loading LSTM model ──")
     predictor = RealtimePredictor(args.model)
 
@@ -257,22 +254,41 @@ def main():
     display_cell_size = args.cell_size
     model_cell_size = predictor.cell_size
 
+    # ── Queue Manager Setup (approach-only, no exit coupling) ─────────
+    grid_w = frame_w // model_cell_size + 1
+    grid_h = frame_h // model_cell_size + 1
+    queue_mgr = QueueManager(grid_w, grid_h, fps=fps)
+
+    if args.trajectories:
+        print("\n── Setting up queue manager ──")
+        with open(args.trajectories) as f:
+            traj_data = json.load(f)
+        grid_cols = traj_data["grid_cols"]
+        trajectories = traj_data["trajectories"]
+
+        print("  Auto-discovering approach ROIs...")
+        queue_mgr.auto_discover_approaches(trajectories, grid_cols)
+        queue_mgr.calibrate_with_cell_size(model_cell_size)
+    else:
+        print("\n  No --trajectories provided, queue manager will learn from scratch")
+
     # {track_id: [(cx, cy), ...]} — unique cells per vehicle
     vehicle_cells = defaultdict(list)
     prev_cells = {}
     prev_frame_ids = set()
     frame_number = 0
 
-    # Prediction results per vehicle
+    # LSTM predictions per vehicle (independent from queue)
     predictions = {}
 
     # Stats
-    stats = {"total_predicted": 0}
+    stats = {"total_predicted": 0, "total_exited_labeled": 0}
 
     show_grid = False
+    show_rois = True
     paused = False
 
-    print(f"\nRunning... SPACE pause | 'q' quit | 'g' grid\n")
+    print(f"\nRunning... SPACE pause | 'q' quit | 'g' grid | 'r' ROIs\n")
 
     while cap.isOpened():
         ret, frame = cap.read()
@@ -285,11 +301,15 @@ def main():
         if show_grid:
             frame = draw_grid(frame, display_cell_size)
 
-        # Draw exit zones on every frame
+        # Draw approach ROIs and exit zones
+        if show_rois:
+            frame = queue_mgr.draw_approach_rois(frame, model_cell_size)
         frame = draw_exit_zones(frame, predictor.clusters, predictor.label_map, display_cell_size, model_cell_size)
 
         # YOLO tracking
-        results = yolo.track(frame, persist=True, classes=[0])
+        results = yolo.track(frame, persist=True, classes=[3, 4, 5, 8], conf=0.15)
+
+        active_cells = {}  # {tid: (cx, cy)} for queue state
 
         if results[0].boxes.id is not None:
             boxes = results[0].boxes.xyxy.cpu()
@@ -302,13 +322,18 @@ def main():
 
                 current_cell = pixel_to_cell(cx, cy, model_cell_size)
                 current_frame_ids.add(tid)
+                active_cells[tid] = current_cell
+
+                # Update queue manager (approach assignment + velocity-based stop detection)
+                queue_mgr.track_vehicle(tid, current_cell, prev_cells.get(tid),
+                                        pixel_pos=(cx, cy))
 
                 # Record cell (only if different from last)
                 if tid not in prev_cells or prev_cells[tid] != current_cell:
                     vehicle_cells[tid].append(current_cell)
                 prev_cells[tid] = current_cell
 
-                # Run LSTM prediction
+                # Run LSTM prediction (independent from queue)
                 cells_seq = vehicle_cells[tid]
                 pred_label, confidence, all_probs = predictor.predict(cells_seq)
 
@@ -320,6 +345,10 @@ def main():
                         "steps": len(cells_seq)
                     }
 
+                # Draw vehicle
+                queued = queue_mgr.is_queued(tid)
+                approach = queue_mgr.vehicle_approach.get(tid, "")
+
                 if tid in predictions:
                     pred = predictions[tid]
                     label_idx = predictor.label_map.get(pred["label"], 0)
@@ -327,9 +356,26 @@ def main():
                     conf = pred["confidence"]
                     steps_text = "prior" if pred["steps"] < 3 else f"{pred['steps']} steps"
 
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+                    if queued:
+                        # Filled semi-transparent overlay to make queued vehicles pop
+                        overlay = frame.copy()
+                        cv2.rectangle(overlay, (x1, y1), (x2, y2), color, -1)
+                        cv2.addWeighted(overlay, 0.35, frame, 0.65, 0, frame)
+                        # Thick colored border
+                        cv2.rectangle(frame, (x1-2, y1-2), (x2+2, y2+2), color, 3)
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 255, 255), 1)
+                        # "QUEUED" badge above the box
+                        badge_text = f"QUEUED [{approach}]"
+                        (tw, th), _ = cv2.getTextSize(badge_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)
+                        cv2.rectangle(frame, (x1, y1 - 42 - th), (x1 + tw + 8, y1 - 38), color, -1)
+                        cv2.putText(frame, badge_text, (x1 + 4, y1 - 42),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
+                    else:
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
 
-                    cv2.putText(frame, f"ID:{tid} {pred['label']}",
+                    vel = queue_mgr.get_velocity(tid)
+                    status = f"[{approach}|Q {vel:.1f}m/s]" if queued else f"[{approach} {vel:.1f}m/s]" if approach else f"[{vel:.1f}m/s]"
+                    cv2.putText(frame, f"ID:{tid} {pred['label']} {status}",
                                 (x1, y1 - 25), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.5, color, 2)
                     cv2.putText(frame, f"{conf:.0%} ({steps_text})",
@@ -347,9 +393,13 @@ def main():
 
                 cv2.circle(frame, (cx, cy), 3, (0, 0, 255), -1)
 
-        # Detect disappeared tracks — log final prediction
+        # Compute queue state (approach queues only)
+        queue_state = queue_mgr.compute_state(active_cells)
+
+        # Detect disappeared tracks
         disappeared = prev_frame_ids - current_frame_ids
         for tid in disappeared:
+            queue_mgr.vehicle_exited(tid)
             if tid in predictions:
                 pred = predictions[tid]
                 stats["total_predicted"] += 1
@@ -359,6 +409,10 @@ def main():
         prev_frame_ids = current_frame_ids
 
         # ── HUD ───────────────────────────────────────────────────────
+        # Queue state panel (with LSTM exit breakdown)
+        frame = queue_mgr.draw_state(frame, queue_state, model_cell_size,
+                                     exit_predictions=predictions)
+
         # Legend
         y_offset = 80
         for label, idx in predictor.label_map.items():
@@ -376,6 +430,7 @@ def main():
                     f"Completed: {stats['total_predicted']}",
                     (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         cv2.putText(frame, f"Grid: {'ON' if show_grid else 'OFF'} (g) | "
+                    f"ROIs: {'ON' if show_rois else 'OFF'} (r) | "
                     f"{'PAUSED' if paused else 'PLAYING'} (space)",
                     (10, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (200, 200, 200), 1)
 
@@ -403,8 +458,12 @@ def main():
                         return
                     elif k2 == ord('g'):
                         show_grid = not show_grid
+                    elif k2 == ord('r'):
+                        show_rois = not show_rois
             elif key == ord('g'):
                 show_grid = not show_grid
+            elif key == ord('r'):
+                show_rois = not show_rois
 
     cap.release()
     if writer:
@@ -416,7 +475,8 @@ def main():
     print(f"\n{'='*50}")
     print(f"  SESSION SUMMARY")
     print(f"  Total vehicles predicted: {stats['total_predicted']}")
-    print(f"  Total vehicles tracked: {len(vehicle_cells)}")
+    print(f"  Total vehicles tracked:   {len(vehicle_cells)}")
+    print(f"  Queue manager completed:  {queue_mgr.total_completed}")
     print(f"{'='*50}\n")
 
 

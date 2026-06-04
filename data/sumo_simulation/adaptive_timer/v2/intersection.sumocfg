@@ -1,0 +1,19 @@
+<configuration>
+    <input>
+        <net-file value="intersection.net.xml"/>
+        <route-files value="intersection.rou.xml"/>
+    </input>
+    <time>
+        <begin value="0"/>
+        <end value="120"/>
+    </time>
+    <processing>
+        <time-to-teleport value="-1"/>
+    </processing>
+    <random_number>
+        <seed value="42"/>
+    </random_number>
+    <gui_only>
+        <gui-settings-file value="intersection.view.xml"/>
+    </gui_only>
+</configuration>

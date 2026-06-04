@@ -18,6 +18,9 @@ from collections import defaultdict
 from pathlib import Path
 from grid_utils import id_to_cell
 
+# Project root (one level up from src/)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -653,7 +656,7 @@ def main():
     print(classification_report(all_true, all_preds, target_names=target_names))
 
     # Step 7: Save
-    out_dir_lstm = Path("models/lstm")
+    out_dir_lstm = PROJECT_ROOT / "models"
     out_dir_lstm.mkdir(parents=True, exist_ok=True)
     model_path = out_dir_lstm / (Path(args.data).stem + "_lstm_model.pt")
     save_model(model, label_map, clusters, cell_size, wait_priors, queue_zones, str(model_path))

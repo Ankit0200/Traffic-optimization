@@ -1,0 +1,51 @@
+<routes>
+    <!-- ============================================================ -->
+    <!-- SCENARIO v6: Oversaturated Arterial (Mumbai/Delhi-style)     -->
+    <!-- All approaches near capacity — tests gridlock prevention     -->
+    <!-- High demand on all 4 approaches simultaneously               -->
+    <!-- N/S: 0.7 veh/s, E/W: 0.6 veh/s (v/c ratio ~0.9)           -->
+    <!-- Turn ratio: 68% through, 8% left, 24% right                 -->
+    <!-- Based on: Indian metro traffic data, HCM oversaturated ops   -->
+    <!-- Duration: 180s                                               -->
+    <!-- ============================================================ -->
+
+    <vType id="car"   length="5.0"  width="2.0" minGap="2.5" maxSpeed="8.33" accel="2.0" decel="4.5" sigma="0.5"
+           guiShape="passenger" color="0.8,0.1,0.1"/>
+    <vType id="auto"  length="3.5"  width="1.5" minGap="1.5" maxSpeed="6.94" accel="2.5" decel="5.0" sigma="0.7"
+           guiShape="passenger/sedan" color="0.9,0.9,0.2"/>
+    <vType id="bus"   length="12.0" width="2.5" minGap="3.0" maxSpeed="6.94" accel="1.2" decel="3.5" sigma="0.5"
+           guiShape="bus" color="0.2,0.6,0.8"/>
+
+    <route id="N_through" edges="N_to_C C_to_S"/>
+    <route id="N_left"    edges="N_to_C C_to_E"/>
+    <route id="N_right"   edges="N_to_C C_to_W"/>
+    <route id="S_through" edges="S_to_C C_to_N"/>
+    <route id="S_left"    edges="S_to_C C_to_W"/>
+    <route id="S_right"   edges="S_to_C C_to_E"/>
+    <route id="E_through" edges="E_to_C C_to_W"/>
+    <route id="E_left"    edges="E_to_C C_to_S"/>
+    <route id="E_right"   edges="E_to_C C_to_N"/>
+    <route id="W_through" edges="W_to_C C_to_E"/>
+    <route id="W_left"    edges="W_to_C C_to_N"/>
+    <route id="W_right"   edges="W_to_C C_to_S"/>
+
+    <!-- North: 0.7 veh/s (68% through, 8% left, 24% right) -->
+    <flow id="N_through" route="N_through" begin="0" end="180" probability="0.476" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N_left"    route="N_left"    begin="0" end="180" probability="0.056" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N_right"   route="N_right"   begin="0" end="180" probability="0.168" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- South: 0.7 veh/s -->
+    <flow id="S_through" route="S_through" begin="0" end="180" probability="0.476" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S_left"    route="S_left"    begin="0" end="180" probability="0.056" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S_right"   route="S_right"   begin="0" end="180" probability="0.168" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- East: 0.6 veh/s -->
+    <flow id="E_through" route="E_through" begin="0" end="180" probability="0.408" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E_left"    route="E_left"    begin="0" end="180" probability="0.048" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E_right"   route="E_right"   begin="0" end="180" probability="0.144" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- West: 0.6 veh/s -->
+    <flow id="W_through" route="W_through" begin="0" end="180" probability="0.408" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W_left"    route="W_left"    begin="0" end="180" probability="0.048" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W_right"   route="W_right"   begin="0" end="180" probability="0.144" departLane="best" departSpeed="desired" type="car"/>
+</routes>

@@ -1,0 +1,82 @@
+<routes>
+    <!-- ============================================================ -->
+    <!-- SCENARIO v7: Stadium Event Dispersal (Special Event)         -->
+    <!-- Models post-game/concert dispersal: one direction gets       -->
+    <!-- extreme surge while others are nearly empty                  -->
+    <!-- Phase 1 (0-30s):   Calm before dispersal (all 0.05 veh/s)  -->
+    <!-- Phase 2 (30-120s): West SURGE 0.9 veh/s (stadium exit)      -->
+    <!-- Phase 3 (120-180s): Gradual decay as crowd disperses        -->
+    <!-- Based on: Event traffic management data, venue dispersal     -->
+    <!-- Turn ratio during surge: 80% through (everyone heading out) -->
+    <!-- ============================================================ -->
+
+    <vType id="car"   length="5.0"  width="2.0" minGap="2.5" maxSpeed="8.33" accel="2.0" decel="4.5" sigma="0.5"
+           guiShape="passenger" color="0.8,0.1,0.1"/>
+    <vType id="suv"   length="5.5"  width="2.2" minGap="2.5" maxSpeed="8.33" accel="1.8" decel="4.0" sigma="0.5"
+           guiShape="passenger/sedan" color="0.2,0.2,0.6"/>
+
+    <route id="N_through" edges="N_to_C C_to_S"/>
+    <route id="N_left"    edges="N_to_C C_to_E"/>
+    <route id="N_right"   edges="N_to_C C_to_W"/>
+    <route id="S_through" edges="S_to_C C_to_N"/>
+    <route id="S_left"    edges="S_to_C C_to_W"/>
+    <route id="S_right"   edges="S_to_C C_to_E"/>
+    <route id="E_through" edges="E_to_C C_to_W"/>
+    <route id="E_left"    edges="E_to_C C_to_S"/>
+    <route id="E_right"   edges="E_to_C C_to_N"/>
+    <route id="W_through" edges="W_to_C C_to_E"/>
+    <route id="W_left"    edges="W_to_C C_to_N"/>
+    <route id="W_right"   edges="W_to_C C_to_S"/>
+
+    <!-- ═══ PHASE 1: 0-30s — Calm before the storm (all 0.05 veh/s) ═══ -->
+    <flow id="N1_through" route="N_through" begin="0" end="30" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N1_left"    route="N_left"    begin="0" end="30" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N1_right"   route="N_right"   begin="0" end="30" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <flow id="S1_through" route="S_through" begin="0" end="30" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S1_left"    route="S_left"    begin="0" end="30" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S1_right"   route="S_right"   begin="0" end="30" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <flow id="E1_through" route="E_through" begin="0" end="30" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E1_left"    route="E_left"    begin="0" end="30" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E1_right"   route="E_right"   begin="0" end="30" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <flow id="W1_through" route="W_through" begin="0" end="30" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W1_left"    route="W_left"    begin="0" end="30" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W1_right"   route="W_right"   begin="0" end="30" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- ═══ PHASE 2: 30-120s — West SURGE 0.9 veh/s (80% through, 10% left, 10% right) ═══ -->
+    <flow id="W2_through" route="W_through" begin="30" end="120" probability="0.72" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W2_left"    route="W_left"    begin="30" end="120" probability="0.09" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W2_right"   route="W_right"   begin="30" end="120" probability="0.09" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- Others stay at 0.05 during surge -->
+    <flow id="N2_through" route="N_through" begin="30" end="120" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N2_left"    route="N_left"    begin="30" end="120" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N2_right"   route="N_right"   begin="30" end="120" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <flow id="S2_through" route="S_through" begin="30" end="120" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S2_left"    route="S_left"    begin="30" end="120" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S2_right"   route="S_right"   begin="30" end="120" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <flow id="E2_through" route="E_through" begin="30" end="120" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E2_left"    route="E_left"    begin="30" end="120" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E2_right"   route="E_right"   begin="30" end="120" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- ═══ PHASE 3: 120-180s — Gradual decay (West drops to 0.3, others stay 0.05) ═══ -->
+    <flow id="W3_through" route="W_through" begin="120" end="180" probability="0.24" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W3_left"    route="W_left"    begin="120" end="180" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W3_right"   route="W_right"   begin="120" end="180" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+
+    <flow id="N3_through" route="N_through" begin="120" end="180" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N3_left"    route="N_left"    begin="120" end="180" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N3_right"   route="N_right"   begin="120" end="180" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <flow id="S3_through" route="S_through" begin="120" end="180" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S3_left"    route="S_left"    begin="120" end="180" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S3_right"   route="S_right"   begin="120" end="180" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+
+    <flow id="E3_through" route="E_through" begin="120" end="180" probability="0.03" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E3_left"    route="E_left"    begin="120" end="180" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E3_right"   route="E_right"   begin="120" end="180" probability="0.01" departLane="best" departSpeed="desired" type="car"/>
+</routes>

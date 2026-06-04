@@ -29,6 +29,9 @@ from collections import defaultdict
 from pathlib import Path
 from grid_utils import cell_to_id, id_to_cell
 
+# Project root (one level up from src/)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -417,6 +420,7 @@ def main():
     parser.add_argument("--video", required=True, help="Path to video file")
     parser.add_argument("--model_path", default="../models/best.pt", help="YOLO model path")
     parser.add_argument("--cell_size", type=int, default=30, help="Grid cell size in pixels")
+    parser.add_argument("--imgsz", type=int, default=640, help="YOLO inference size")
     args = parser.parse_args()
 
     cell_size = args.cell_size
@@ -468,7 +472,7 @@ def main():
             frame = draw_grid(frame, cell_size, k=grid_w)
 
         # Run YOLO tracking
-        results = yolo.track(frame, persist=True, classes=[0])
+        results = yolo.track(frame, persist=True, classes=[3, 4, 5, 8], imgsz=args.imgsz)
 
         if results[0].boxes.id is not None:
             boxes = results[0].boxes.xyxy.cpu()
@@ -562,7 +566,7 @@ def main():
                     cap.release()
                     cv2.destroyAllWindows()
                     trans.summary()
-                    out_dir_trans = Path("data/transitions")
+                    out_dir_trans = PROJECT_ROOT / "data" / "transitions"
                     out_dir_trans.mkdir(parents=True, exist_ok=True)
                     output_path = out_dir_trans / (Path(args.video).stem + "_transitions.json")
                     trans.save(str(output_path))
@@ -621,7 +625,7 @@ def main():
 
     trans.summary()
 
-    out_dir_trans = Path("data/transitions")
+    out_dir_trans = PROJECT_ROOT / "data" / "transitions"
     out_dir_trans.mkdir(parents=True, exist_ok=True)
     output_path = out_dir_trans / (Path(args.video).stem + "_transitions.json")
     trans.save(str(output_path))
@@ -645,7 +649,7 @@ def main():
                 "length": len(cells_seq)
             }
 
-    out_dir_traj = Path("data/trajectories")
+    out_dir_traj = PROJECT_ROOT / "data" / "trajectories"
     out_dir_traj.mkdir(parents=True, exist_ok=True)
     traj_path = out_dir_traj / (Path(args.video).stem + "_trajectories.json")
     with open(str(traj_path), 'w') as f:

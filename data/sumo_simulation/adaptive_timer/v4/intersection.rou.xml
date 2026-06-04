@@ -1,0 +1,74 @@
+<routes>
+    <!-- ============================================================ -->
+    <!-- SCENARIO v4: Evening Exodus with Mid-Shift (LA-style)        -->
+    <!-- Models downtown LA evening: heavy outbound that gradually    -->
+    <!-- shifts direction as commuters clear and nightlife begins     -->
+    <!-- Phase 1 (0-90s): Heavy S→N outbound, light others           -->
+    <!-- Phase 2 (90-180s): Demand equalizes as rush subsides         -->
+    <!-- Based on: LADOT evening peak data, PHF=0.88                  -->
+    <!-- ============================================================ -->
+
+    <vType id="car"   length="5.0"  width="2.0" minGap="2.5" maxSpeed="8.33" accel="2.0" decel="4.5" sigma="0.5"
+           guiShape="passenger" color="0.8,0.1,0.1"/>
+    <vType id="van"   length="5.75" width="2.2" minGap="2.5" maxSpeed="7.50" accel="1.8" decel="4.0" sigma="0.5"
+           guiShape="delivery" color="0.9,0.8,0.3"/>
+    <vType id="truck" length="10.0" width="2.5" minGap="3.0" maxSpeed="6.94" accel="1.2" decel="3.5" sigma="0.5"
+           guiShape="truck" color="0.6,0.4,0.2"/>
+
+    <route id="N_through" edges="N_to_C C_to_S"/>
+    <route id="N_left"    edges="N_to_C C_to_E"/>
+    <route id="N_right"   edges="N_to_C C_to_W"/>
+    <route id="S_through" edges="S_to_C C_to_N"/>
+    <route id="S_left"    edges="S_to_C C_to_W"/>
+    <route id="S_right"   edges="S_to_C C_to_E"/>
+    <route id="E_through" edges="E_to_C C_to_W"/>
+    <route id="E_left"    edges="E_to_C C_to_S"/>
+    <route id="E_right"   edges="E_to_C C_to_N"/>
+    <route id="W_through" edges="W_to_C C_to_E"/>
+    <route id="W_left"    edges="W_to_C C_to_N"/>
+    <route id="W_right"   edges="W_to_C C_to_S"/>
+
+    <!-- ═══ PHASE 1: 0-90s — Heavy S outbound (0.7), moderate N (0.3), light E/W (0.1) ═══ -->
+
+    <!-- South: 0.7 veh/s (strong outbound exodus) — 72% through, 10% left, 18% right -->
+    <flow id="S1_through" route="S_through" begin="0" end="90" probability="0.504" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S1_left"    route="S_left"    begin="0" end="90" probability="0.070" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S1_right"   route="S_right"   begin="0" end="90" probability="0.126" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- North: 0.3 veh/s (moderate inbound) -->
+    <flow id="N1_through" route="N_through" begin="0" end="90" probability="0.216" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N1_left"    route="N_left"    begin="0" end="90" probability="0.042" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N1_right"   route="N_right"   begin="0" end="90" probability="0.042" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- East: 0.1 veh/s -->
+    <flow id="E1_through" route="E_through" begin="0" end="90" probability="0.072" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E1_left"    route="E_left"    begin="0" end="90" probability="0.014" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E1_right"   route="E_right"   begin="0" end="90" probability="0.014" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- West: 0.1 veh/s -->
+    <flow id="W1_through" route="W_through" begin="0" end="90" probability="0.072" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W1_left"    route="W_left"    begin="0" end="90" probability="0.014" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W1_right"   route="W_right"   begin="0" end="90" probability="0.014" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- ═══ PHASE 2: 90-180s — Rush subsides, demand equalizes ═══ -->
+
+    <!-- South drops to 0.25 -->
+    <flow id="S2_through" route="S_through" begin="90" end="180" probability="0.175" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S2_left"    route="S_left"    begin="90" end="180" probability="0.038" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="S2_right"   route="S_right"   begin="90" end="180" probability="0.038" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- North stays 0.25 -->
+    <flow id="N2_through" route="N_through" begin="90" end="180" probability="0.175" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N2_left"    route="N_left"    begin="90" end="180" probability="0.038" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="N2_right"   route="N_right"   begin="90" end="180" probability="0.038" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- E/W rise to 0.3 (nightlife district traffic picks up) -->
+    <flow id="E2_through" route="E_through" begin="90" end="180" probability="0.210" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E2_left"    route="E_left"    begin="90" end="180" probability="0.045" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="E2_right"   route="E_right"   begin="90" end="180" probability="0.045" departLane="best" departSpeed="desired" type="car"/>
+
+    <!-- West: 0.3 veh/s -->
+    <flow id="W2_through" route="W_through" begin="90" end="180" probability="0.210" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W2_left"    route="W_left"    begin="90" end="180" probability="0.045" departLane="best" departSpeed="desired" type="car"/>
+    <flow id="W2_right"   route="W_right"   begin="90" end="180" probability="0.045" departLane="best" departSpeed="desired" type="car"/>
+</routes>
