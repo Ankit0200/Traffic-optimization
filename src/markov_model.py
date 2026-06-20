@@ -19,7 +19,6 @@ import argparse
 import numpy as np
 from collections import defaultdict
 from pathlib import Path
-from grid_utils import cell_to_id, id_to_cell
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -36,19 +35,11 @@ def load_transitions(filepath):
 
     cells = {}
     for key, val in data["cells"].items():
-        # Support both new format (linear ID string like "42") and
-        # old format ("col,row" string like "3,6")
-        if "," in key:
-            cx, cy = map(int, key.split(","))
-        else:
-            cx, cy = id_to_cell(int(key), grid_cols)
+        cx, cy = map(int, key.split(","))
 
         neighbors = {}
         for n_key, n_val in val["neighbors"].items():
-            if "," in n_key:
-                nx, ny = map(int, n_key.split(","))
-            else:
-                nx, ny = id_to_cell(int(n_key), grid_cols)
+            nx, ny = map(int, n_key.split(","))
             neighbors[(nx, ny)] = {
                 "count": n_val["count"],
                 "probability": n_val["probability"]
@@ -60,27 +51,16 @@ def load_transitions(filepath):
 
     endpoints = []
     for ep in data["endpoints"]:
-        # Support both new format (single linear ID int) and old format ([col, row] list)
-        raw_cell = ep["cell"]
-        if isinstance(raw_cell, list):
-            cell_tuple = tuple(raw_cell)
-        else:
-            cell_tuple = id_to_cell(raw_cell, grid_cols)
         endpoints.append({
-            "cell": cell_tuple,
+            "cell": tuple(ep["cell"]),
             "track_id": ep["track_id"],
             "frame": ep["frame"]
         })
 
     startpoints = []
     for sp in data["startpoints"]:
-        raw_cell = sp["cell"]
-        if isinstance(raw_cell, list):
-            cell_tuple = tuple(raw_cell)
-        else:
-            cell_tuple = id_to_cell(raw_cell, grid_cols)
         startpoints.append({
-            "cell": cell_tuple,
+            "cell": tuple(sp["cell"]),
             "track_id": sp["track_id"],
             "frame": sp["frame"]
         })
@@ -412,8 +392,7 @@ def save_model(filepath, cell_size, exit_clusters, exit_probs, cells, grid_cols=
         })
 
     def _cell_key(cell):
-        """Return linear ID string if grid_cols known, else fall back to col,row."""
-        return str(cell_to_id(cell[0], cell[1], grid_cols)) if grid_cols else f"{cell[0]},{cell[1]}"
+        return f"{cell[0]},{cell[1]}"
 
     # P(exit | cell) for each cell
     for cell, probs in exit_probs.items():

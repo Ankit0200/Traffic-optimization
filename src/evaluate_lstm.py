@@ -25,48 +25,16 @@ from collections import defaultdict
 from pathlib import Path
 
 import torch
-import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence
 from ultralytics import YOLO
+from lstm_predictor import TurnPredictor, trajectory_to_features
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# LSTM Model (same as training)
-# ═══════════════════════════════════════════════════════════════════════════
-
-class TurnPredictor(nn.Module):
-    def __init__(self, input_size=4, hidden_size=64, num_layers=2,
-                 num_classes=3, dropout=0.3):
-        super().__init__()
-        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
-                            num_layers=num_layers, batch_first=True,
-                            dropout=dropout if num_layers > 1 else 0)
-        self.dropout = nn.Dropout(dropout)
-        self.fc = nn.Sequential(
-            nn.Linear(hidden_size, 32), nn.ReLU(),
-            nn.Dropout(dropout), nn.Linear(32, num_classes))
-
-    def forward(self, x, lengths):
-        packed = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)
-        _, (hidden, _) = self.lstm(packed)
-        out = self.dropout(hidden[-1])
-        return self.fc(out)
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# Utilities 
+# Utilities
 # ═══════════════════════════════════════════════════════════════════════════
 
 def pixel_to_cell(x, y, cell_size):
     return (int(x // cell_size), int(y // cell_size))
-
-def trajectory_to_features(cells):
-    features = []
-    for i, (x, y) in enumerate(cells):
-        dx = (x - cells[i-1][0]) if i > 0 else 0.0
-        dy = (y - cells[i-1][1]) if i > 0 else 0.0
-        features.append([x / 40.0, y / 22.0, dx / 5.0, dy / 5.0])
-    return np.array(features, dtype=np.float32)
 
 
 class Predictor:

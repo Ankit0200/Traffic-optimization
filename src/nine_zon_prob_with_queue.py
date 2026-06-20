@@ -27,7 +27,6 @@ import numpy as np
 from ultralytics import YOLO
 from collections import defaultdict
 from pathlib import Path
-from grid_utils import cell_to_id, id_to_cell
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -91,7 +90,7 @@ def draw_grid(frame, cell_size, k=None, color=(150, 150, 150), thickness=1):
         for cy in range(0, h // cell_size, label_every):
             px = cx * cell_size + 2
             py = cy * cell_size + 12
-            label = str(cell_to_id(cx, cy, k)) if k is not None else f"{cx},{cy}"
+            label = f"{cx},{cy}"
             cv2.putText(frame, label, (px, py),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.3, (200, 200, 200), 1)
     return frame
@@ -270,7 +269,7 @@ class TransitionModel:
             "cells": {}, "endpoints": [], "startpoints": []
         }
         for cell in self.cell_total:
-            key    = str(cell_to_id(cell[0], cell[1], k)) if k else f"{cell[0]},{cell[1]}"
+            key = f"{cell[0]},{cell[1]}"
             probs  = self.get_probabilities(cell)
             counts = self.get_counts(cell)
             data["cells"][key] = {
@@ -278,19 +277,19 @@ class TransitionModel:
                 "neighbors": {}
             }
             for neighbor, prob in probs.items():
-                n_key = str(cell_to_id(neighbor[0], neighbor[1], k)) if k else f"{neighbor[0]},{neighbor[1]}"
+                n_key = f"{neighbor[0]},{neighbor[1]}"
                 data["cells"][key]["neighbors"][n_key] = {
                     "count": int(counts[neighbor]),
                     "probability": round(prob, 4)
                 }
         for ep in self.endpoints:
             data["endpoints"].append({
-                "cell": cell_to_id(ep["cell"][0], ep["cell"][1], k) if k else list(ep["cell"]),
+                "cell": list(ep["cell"]),
                 "track_id": ep["track_id"], "frame": ep["frame"]
             })
         for sp in self.startpoints:
             data["startpoints"].append({
-                "cell": cell_to_id(sp["cell"][0], sp["cell"][1], k) if k else list(sp["cell"]),
+                "cell": list(sp["cell"]),
                 "track_id": sp["track_id"], "frame": sp["frame"]
             })
         with open(filepath, 'w') as f:
@@ -641,9 +640,9 @@ def save_all(trans, trajectory_history, grid_w, cell_size, video_path):
                 cells_seq.append(cell)
         if len(cells_seq) >= 3:
             trajectories_data[str(tid)] = {
-                "cells":  [cell_to_id(c[0], c[1], grid_w) for c in cells_seq],
-                "start":  cell_to_id(cells_seq[0][0],  cells_seq[0][1],  grid_w),
-                "end":    cell_to_id(cells_seq[-1][0], cells_seq[-1][1], grid_w),
+                "cells":  [list(c) for c in cells_seq],
+                "start":  list(cells_seq[0]),
+                "end":    list(cells_seq[-1]),
                 "length": len(cells_seq)
             }
 
@@ -779,8 +778,7 @@ def main():
                 # ── Show most likely next cell ────────────────────────────
                 next_cell, prob = trans.get_most_likely_next(current_cell)
                 if next_cell and prob > 0.3:
-                    next_id = cell_to_id(next_cell[0], next_cell[1], grid_w)
-                    cv2.putText(frame, f"next:{next_id} {prob:.0%}",
+                    cv2.putText(frame, f"next:{next_cell[0]},{next_cell[1]} {prob:.0%}",
                                 (x1, y2 + 35), cv2.FONT_HERSHEY_SIMPLEX,
                                 0.38, (255, 255, 0), 1)
 

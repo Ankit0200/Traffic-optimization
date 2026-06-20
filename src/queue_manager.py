@@ -12,7 +12,6 @@ No lane detection, no manual polygons — everything learned from data.
 
 import numpy as np
 from collections import defaultdict
-from grid_utils import id_to_cell
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -108,7 +107,7 @@ class QueueManager:
             cells_list = traj["cells"]
             if len(cells_list) < MIN_TRAJ_LENGTH:
                 continue
-            start = id_to_cell(cells_list[0], grid_cols)
+            start = tuple(cells_list[0])
             start_counts[start].append(tid)
 
         # Greedy clustering (same approach as endpoint clustering)
@@ -143,19 +142,27 @@ class QueueManager:
                     "count": len(cluster_tids),
                 })
 
-        # Filter out clusters whose center is in the intersection
+        # Filter out clusters entirely inside the intersection
+        # A cluster is valid if ANY of its start cells are outside the intersection
         clusters = [cl for cl in clusters
-                    if not self._in_intersection(cl["center"][0], cl["center"][1])]
+                    if any(not self._in_intersection(c[0], c[1])
+                           for c in cl["start_cells"])]
 
-        # Keep only clusters near frame edges (real approaches enter from edges)
-        edge_margin = 0.20  # center must be within 20% of a frame edge
-        def near_edge(cl):
-            cx, cy = cl["center"]
-            return (cx < self.grid_w * edge_margin or
-                    cx > self.grid_w * (1 - edge_margin) or
-                    cy < self.grid_h * edge_margin or
-                    cy > self.grid_h * (1 - edge_margin))
-        clusters = [cl for cl in clusters if near_edge(cl)]
+        # Keep only clusters that have cells near frame edges
+        # Real approaches always have vehicles entering from the edge,
+        # so at least one start cell must be within edge_margin of a border.
+        # Using cell membership (not center) prevents large clustering radii
+        # from dragging the center away from the edge and failing the check.
+        edge_margin = 0.20
+        def has_edge_cell(cl):
+            for c in cl["start_cells"]:
+                if (c[0] < self.grid_w * edge_margin or
+                    c[0] > self.grid_w * (1 - edge_margin) or
+                    c[1] < self.grid_h * edge_margin or
+                    c[1] >= self.grid_h * (1 - edge_margin)):
+                    return True
+            return False
+        clusters = [cl for cl in clusters if has_edge_cell(cl)]
 
         # Build ROIs from trajectory paths
         self.approaches = []
@@ -171,8 +178,8 @@ class QueueManager:
                     continue
                 cells_list = traj["cells"]
                 n = max(len(cells_list) // 4, 3)
-                for cell_id in cells_list[:n]:
-                    cell = id_to_cell(cell_id, grid_cols)
+                for cell_raw in cells_list[:n]:
+                    cell = tuple(cell_raw)
                     if not self._in_intersection(cell[0], cell[1]):
                         roi_cells.add(cell)
 

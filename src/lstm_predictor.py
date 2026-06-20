@@ -16,7 +16,6 @@ import argparse
 import numpy as np
 from collections import defaultdict
 from pathlib import Path
-from grid_utils import id_to_cell
 
 # Project root (one level up from src/)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -36,31 +35,18 @@ from sklearn.metrics import classification_report, confusion_matrix
 def load_trajectories(filepath):
     """Load trajectory JSON and return (cell_size, trajectories).
 
-    Supports both formats:
-      - New format: cells stored as linear integer IDs (requires grid_cols in JSON)
-      - Old format: cells stored as [col, row] lists
-
-    In both cases, returns cells as (col, row) tuples so all downstream
-    code (clustering, feature engineering, training) is unchanged.
+    Cells are stored as [col, row] pairs in JSON, returned as (col, row) tuples.
     """
     with open(filepath, 'r') as f:
         data = json.load(f)
 
-    k = data.get("grid_cols")   # cells per row; present only in new-format files
     print(f"Loaded {data['total_tracks']} trajectories, "
           f"cell_size={data['cell_size']}, "
-          f"grid_cols={k if k else 'N/A (old format)'}")
+          f"grid_cols={data.get('grid_cols', 'N/A')}")
 
     trajectories = {}
     for tid, traj in data["trajectories"].items():
-        cells_raw = traj["cells"]
-        # Detect format from first element
-        if cells_raw and isinstance(cells_raw[0], int):
-            # New format: list of linear IDs  →  convert to (col, row) tuples
-            cell_tuples = [id_to_cell(c, k) for c in cells_raw]
-        else:
-            # Old format: list of [col, row] pairs  →  just convert to tuples
-            cell_tuples = [tuple(c) for c in cells_raw]
+        cell_tuples = [tuple(c) for c in traj["cells"]]
 
         trajectories[tid] = {
             "cells": cell_tuples,
@@ -548,6 +534,114 @@ def save_model(model, label_map, clusters, cell_size, wait_priors, queue_zones, 
         }
     }, filepath)
     print(f"  Model saved to: {filepath}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# STEP 8: Real-time predictor (inference wrapper)
+# ═══════════════════════════════════════════════════════════════════════════
+
+class RealtimePredictor:
+    """
+    Wraps the trained LSTM for real-time exit prediction.
+
+    Loads a saved model checkpoint and provides a simple predict() interface
+    that takes a partial cell sequence and returns the predicted exit zone.
+    Used by test_lstm_realtime.py, run_sumo_video.py, and compare.py.
+    """
+
+    def __init__(self, model_path, device='cpu'):
+        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
+        self.label_map = checkpoint["label_map"]
+        self.inv_label_map = {v: k for k, v in self.label_map.items()}
+        self.clusters = checkpoint["clusters"]
+        self.cell_size = checkpoint["cell_size"]
+        self.wait_priors = {}
+        if "wait_priors" in checkpoint:
+            for item in checkpoint["wait_priors"]:
+                self.wait_priors[tuple(item["cell"])] = item["probs"]
+        config = checkpoint["model_config"]
+
+        self.model = TurnPredictor(
+            input_size=config["input_size"],
+            hidden_size=config["hidden_size"],
+            num_layers=config["num_layers"],
+            num_classes=config["num_classes"]
+        )
+        self.model.load_state_dict(checkpoint["model_state"])
+        self.model.eval()
+        self.device = device
+        self.model.to(device)
+
+        self.min_steps = 3
+
+        print(f"Model loaded: {len(self.label_map)} exit classes")
+        for cl in self.clusters:
+            print(f"  {cl['label']}: center={cl['center']}, count={cl['count']}")
+
+    def predict(self, cell_sequence):
+        """
+        Predict exit from a partial cell sequence.
+
+        Returns:
+            (predicted_label, confidence, all_probabilities)
+            or (None, 0, {}) if not enough data yet
+        """
+        if len(cell_sequence) < self.min_steps:
+            if len(cell_sequence) > 0:
+                start_cell = tuple(cell_sequence[0])
+                if start_cell in self.wait_priors:
+                    probs = self.wait_priors[start_cell]
+                    pred_label = max(probs, key=probs.get)
+                    confidence = probs[pred_label]
+                    return pred_label, confidence, probs
+            return None, 0.0, {}
+
+        features = trajectory_to_features(cell_sequence)
+        seq = torch.tensor(features, dtype=torch.float32).unsqueeze(0).to(self.device)
+        length = torch.tensor([len(cell_sequence)], dtype=torch.long)
+
+        with torch.no_grad():
+            output = self.model(seq, length)
+            probs = torch.softmax(output, dim=1).squeeze().cpu().numpy()
+
+        pred_idx = np.argmax(probs)
+        pred_label = self.inv_label_map[pred_idx]
+        confidence = float(probs[pred_idx])
+
+        all_probs = {self.inv_label_map[i]: float(p) for i, p in enumerate(probs)}
+
+        return pred_label, confidence, all_probs
+
+    def is_through_movement(self, entry_dir, exit_label, grid_w=38, grid_h=21):
+        """
+        Check if an entry→exit pair is a through movement (opposite direction).
+
+        Args:
+            entry_dir: "NB", "SB", "EB", or "WB"
+            exit_label: "exit_0", "exit_1", etc.
+            grid_w: grid columns (for edge detection)
+            grid_h: grid rows (for edge detection)
+        """
+        # Determine exit direction from cluster center position
+        exit_dir = None
+        for cl in self.clusters:
+            if cl["label"] == exit_label:
+                cx, cy = cl["center"]
+                if cy <= 2:
+                    exit_dir = "NB"
+                elif cy >= grid_h - 3:
+                    exit_dir = "SB"
+                elif cx <= 2:
+                    exit_dir = "WB"
+                elif cx >= grid_w - 3:
+                    exit_dir = "EB"
+                break
+
+        if exit_dir is None:
+            return False
+
+        opposites = {"NB": "SB", "SB": "NB", "EB": "WB", "WB": "EB"}
+        return opposites.get(entry_dir) == exit_dir
 
 
 # ═══════════════════════════════════════════════════════════════════════════

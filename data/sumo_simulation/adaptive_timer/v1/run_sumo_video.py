@@ -24,19 +24,15 @@ import time
 import shutil
 import random
 import json
-import numpy as np
 from collections import defaultdict
 from pathlib import Path
 
 import traci
 import cv2
-import torch
-import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence
 
 # ── Project paths ──────────────────────────────────────────────────────────
 SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parents[2]  # data/sumo_simulation/adaptive_timer/v1 → project root
+PROJECT_ROOT = SCRIPT_DIR.parents[3]  # data/sumo_simulation/adaptive_timer/v1 → project root
 SRC_DIR = PROJECT_ROOT / "src"
 
 # Add src/ to path for imports
@@ -44,11 +40,12 @@ sys.path.insert(0, str(SRC_DIR))
 
 from queue_manager import QueueManager
 from arrival_rate import ArrivalRateEstimator
+from lstm_predictor import RealtimePredictor
 
 SUMO_CFG = str(SCRIPT_DIR / "intersection.sumocfg")
 OUTPUT_VIDEO = str(SCRIPT_DIR / "intersection_sim.mp4")
-LSTM_MODEL_PATH = str(PROJECT_ROOT / "models" / "intersection_sim_trajectories_lstm_model.pt")
-TRAJ_DATA_PATH = str(PROJECT_ROOT / "data" / "trajectories" / "intersection_sim_trajectories.json")
+LSTM_MODEL_PATH = str(PROJECT_ROOT / "models" / "fixed_v2_trajectories_lstm_model.pt")
+TRAJ_DATA_PATH = str(PROJECT_ROOT / "data" / "transitions" / "sumo_transition" / "fixed_v2_trajectories.json")
 
 WIDTH = 1920
 HEIGHT = 1080
@@ -97,114 +94,8 @@ CAR_COLORS = [
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# LSTM Model (same architecture as training)
-# ═══════════════════════════════════════════════════════════════════════════
-
-class TurnPredictor(nn.Module):
-    def __init__(self, input_size=4, hidden_size=64, num_layers=2,
-                 num_classes=3, dropout=0.3):
-        super().__init__()
-        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
-                            num_layers=num_layers, batch_first=True,
-                            dropout=dropout if num_layers > 1 else 0)
-        self.dropout = nn.Dropout(dropout)
-        self.fc = nn.Sequential(
-            nn.Linear(hidden_size, 32), nn.ReLU(),
-            nn.Dropout(dropout), nn.Linear(32, num_classes))
-
-    def forward(self, x, lengths):
-        packed = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)
-        _, (hidden, _) = self.lstm(packed)
-        out = self.dropout(hidden[-1])
-        return self.fc(out)
-
-
-class LSTMPredictor:
-    """Wraps the trained LSTM for real-time exit prediction."""
-
-    def __init__(self, model_path, device='cpu'):
-        ckpt = torch.load(model_path, map_location=device, weights_only=False)
-        self.label_map = ckpt["label_map"]
-        self.inv_map = {v: k for k, v in self.label_map.items()}
-        self.clusters = ckpt["clusters"]
-        self.cell_size = ckpt["cell_size"]
-        self.wait_priors = {}
-        if "wait_priors" in ckpt:
-            for item in ckpt["wait_priors"]:
-                self.wait_priors[tuple(item["cell"])] = item["probs"]
-
-        config = ckpt["model_config"]
-        self.model = TurnPredictor(
-            input_size=config["input_size"], hidden_size=config["hidden_size"],
-            num_layers=config["num_layers"], num_classes=config["num_classes"])
-        self.model.load_state_dict(ckpt["model_state"])
-        self.model.eval()
-        self.device = device
-        self.model.to(device)
-
-        # Map exit labels to cardinal directions for signal logic
-        # exit clusters near edges → direction
-        self.exit_to_direction = {}
-        grid_w = WIDTH // self.cell_size
-        grid_h = HEIGHT // self.cell_size
-        for cl in self.clusters:
-            cx, cy = cl["center"]
-            label = cl["label"]
-            # Determine which edge this exit is near
-            if cy <= 2:
-                self.exit_to_direction[label] = "NB"  # exits top = northbound
-            elif cy >= grid_h - 3:
-                self.exit_to_direction[label] = "SB"
-            elif cx <= 2:
-                self.exit_to_direction[label] = "WB"
-            elif cx >= grid_w - 3:
-                self.exit_to_direction[label] = "EB"
-            else:
-                self.exit_to_direction[label] = "unknown"
-
-        print(f"LSTM loaded: {len(self.label_map)} exits")
-        for cl in self.clusters:
-            d = self.exit_to_direction[cl["label"]]
-            print(f"  {cl['label']}: center={cl['center']}, count={cl['count']} → {d}")
-
-    def predict(self, cell_sequence):
-        """Predict exit from partial cell sequence → (label, confidence, probs)"""
-        if len(cell_sequence) < 3:
-            if cell_sequence:
-                start = tuple(cell_sequence[0])
-                if start in self.wait_priors:
-                    probs = self.wait_priors[start]
-                    label = max(probs, key=probs.get)
-                    return label, probs[label], probs
-            return None, 0.0, {}
-
-        features = []
-        for i, (x, y) in enumerate(cell_sequence):
-            dx = (x - cell_sequence[i-1][0]) if i > 0 else 0.0
-            dy = (y - cell_sequence[i-1][1]) if i > 0 else 0.0
-            features.append([x / 40.0, y / 22.0, dx / 5.0, dy / 5.0])
-
-        seq = torch.tensor([features], dtype=torch.float32).to(self.device)
-        length = torch.tensor([len(cell_sequence)], dtype=torch.long)
-
-        with torch.no_grad():
-            output = self.model(seq, length)
-            probs = torch.softmax(output, dim=1).squeeze().cpu().numpy()
-
-        pred_idx = np.argmax(probs)
-        label = self.inv_map[pred_idx]
-        all_probs = {self.inv_map[i]: float(p) for i, p in enumerate(probs)}
-        return label, float(probs[pred_idx]), all_probs
-
-    def is_through_movement(self, entry_dir, exit_label):
-        """Check if an entry→exit pair is a through movement (opposite direction)."""
-        exit_dir = self.exit_to_direction.get(exit_label, "")
-        opposites = {"NB": "SB", "SB": "NB", "EB": "WB", "WB": "EB"}
-        return opposites.get(entry_dir) == exit_dir
-
-
-# ═══════════════════════════════════════════════════════════════════════════
 # SUMO → Grid coordinate mapping
+
 # ═══════════════════════════════════════════════════════════════════════════
 
 class SUMOGridMapper:
@@ -298,7 +189,7 @@ def main():
         print("  Running without LSTM predictions (queue + arrival only)")
         lstm = None
     else:
-        lstm = LSTMPredictor(LSTM_MODEL_PATH)
+        lstm = RealtimePredictor(LSTM_MODEL_PATH)
 
     # ── Load trajectory data for QueueManager bootstrap ───────────────
     print("\n── Loading trajectory data for queue manager ──")

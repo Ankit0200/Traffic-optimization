@@ -20,43 +20,9 @@ import numpy as np
 from collections import defaultdict
 from pathlib import Path
 
-import torch
-import torch.nn as nn
-from torch.nn.utils.rnn import pack_padded_sequence
 from ultralytics import YOLO
 from queue_manager import QueueManager
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# LSTM Model (same architecture as training)
-# ═══════════════════════════════════════════════════════════════════════════
-
-class TurnPredictor(nn.Module):
-    def __init__(self, input_size=4, hidden_size=64, num_layers=2,
-                 num_classes=3, dropout=0.3):
-        super().__init__()
-        self.lstm = nn.LSTM(
-            input_size=input_size,
-            hidden_size=hidden_size,
-            num_layers=num_layers,
-            batch_first=True,
-            dropout=dropout if num_layers > 1 else 0
-        )
-        self.dropout = nn.Dropout(dropout)
-        self.fc = nn.Sequential(
-            nn.Linear(hidden_size, 32),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(32, num_classes)
-        )
-
-    def forward(self, x, lengths):
-        packed = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)
-        lstm_out, (hidden, cell) = self.lstm(packed)
-        last_hidden = hidden[-1]
-        out = self.dropout(last_hidden)
-        out = self.fc(out)
-        return out
+from lstm_predictor import RealtimePredictor
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -65,19 +31,6 @@ class TurnPredictor(nn.Module):
 
 def pixel_to_cell(x, y, cell_size):
     return (int(x // cell_size), int(y // cell_size))
-
-
-def trajectory_to_features(cells):
-    """Convert cell sequence to (x, y, dx, dy) features — same as training."""
-    features = []
-    for i, (x, y) in enumerate(cells):
-        if i == 0:
-            dx, dy = 0.0, 0.0
-        else:
-            dx = x - cells[i-1][0]
-            dy = y - cells[i-1][1]
-        features.append([x / 40.0, y / 22.0, dx / 5.0, dy / 5.0])
-    return np.array(features, dtype=np.float32)
 
 
 def draw_grid(frame, cell_size, color=(100, 100, 100), thickness=1):
@@ -143,75 +96,6 @@ def draw_exit_zones(frame, clusters, label_map, display_cell_size, model_cell_si
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# PREDICTOR CLASS — wraps the model for easy real-time use
-# ═══════════════════════════════════════════════════════════════════════════
-
-class RealtimePredictor:
-    def __init__(self, model_path, device='cpu'):
-        checkpoint = torch.load(model_path, map_location=device, weights_only=False)
-        self.label_map = checkpoint["label_map"]
-        self.inv_label_map = {v: k for k, v in self.label_map.items()}
-        self.clusters = checkpoint["clusters"]
-        self.cell_size = checkpoint["cell_size"]
-        self.wait_priors = {}
-        if "wait_priors" in checkpoint:
-            for item in checkpoint["wait_priors"]:
-                self.wait_priors[tuple(item["cell"])] = item["probs"]
-        config = checkpoint["model_config"]
-
-        self.model = TurnPredictor(
-            input_size=config["input_size"],
-            hidden_size=config["hidden_size"],
-            num_layers=config["num_layers"],
-            num_classes=config["num_classes"]
-        )
-        self.model.load_state_dict(checkpoint["model_state"])
-        self.model.eval()
-        self.device = device
-        self.model.to(device)
-
-        self.min_steps = 3
-
-        print(f"Model loaded: {len(self.label_map)} exit classes")
-        for cl in self.clusters:
-            print(f"  {cl['label']}: center={cl['center']}, count={cl['count']}")
-
-    def predict(self, cell_sequence):
-        """
-        Predict exit from a partial cell sequence.
-
-        Returns:
-            (predicted_label, confidence, all_probabilities)
-            or (None, 0, {}) if not enough data yet
-        """
-        if len(cell_sequence) < self.min_steps:
-            if len(cell_sequence) > 0:
-                start_cell = tuple(cell_sequence[0])
-                if start_cell in self.wait_priors:
-                    probs = self.wait_priors[start_cell]
-                    pred_label = max(probs, key=probs.get)
-                    confidence = probs[pred_label]
-                    return pred_label, confidence, probs
-            return None, 0.0, {}
-
-        features = trajectory_to_features(cell_sequence)
-        seq = torch.tensor(features, dtype=torch.float32).unsqueeze(0).to(self.device)
-        length = torch.tensor([len(cell_sequence)], dtype=torch.long)
-
-        with torch.no_grad():
-            output = self.model(seq, length)
-            probs = torch.softmax(output, dim=1).squeeze().cpu().numpy()
-
-        pred_idx = np.argmax(probs)
-        pred_label = self.inv_label_map[pred_idx]
-        confidence = float(probs[pred_idx])
-
-        all_probs = {self.inv_label_map[i]: float(p) for i, p in enumerate(probs)}
-
-        return pred_label, confidence, all_probs
-
-
-# ═══════════════════════════════════════════════════════════════════════════
 # MAIN — Run on video
 # ═══════════════════════════════════════════════════════════════════════════
 
@@ -223,6 +107,7 @@ def main():
     parser.add_argument("--cell_size", type=int, default=50, help="Grid cell size")
     parser.add_argument("--output", help="Path to save output video (e.g., output.mp4)")
     parser.add_argument("--trajectories", help="Path to trajectories JSON (for queue manager bootstrap)")
+    parser.add_argument("--signal_log", help="Path to decision_log.json for signal phase overlay")
     args = parser.parse_args()
 
     # Load predictor (LSTM — independent exit prediction)
@@ -271,6 +156,44 @@ def main():
         queue_mgr.calibrate_with_cell_size(model_cell_size)
     else:
         print("\n  No --trajectories provided, queue manager will learn from scratch")
+
+    # ── Signal phase overlay setup ─────────────────────────────────────
+    signal_cycles = []
+    if args.signal_log:
+        with open(args.signal_log) as f:
+            signal_cycles = json.load(f)
+        print(f"\n── Signal log loaded: {len(signal_cycles)} cycles ──")
+
+    # Build phase timeline from decision log
+    # Each cycle alternates: odd cycles → EW_GREEN, even cycles → NS_GREEN
+    # Yellow duration = 3s between phases
+    YELLOW_DUR = 3.0
+    phase_events = []  # [(start_time, end_time, phase_name, cycle_data)]
+    if signal_cycles:
+        # Before first cycle: NS_GREEN from t=0 to first cycle time
+        phase_events.append((0, signal_cycles[0]["time"] - YELLOW_DUR, "NS_GREEN", None))
+        phase_events.append((signal_cycles[0]["time"] - YELLOW_DUR, signal_cycles[0]["time"], "NS_YELLOW", None))
+
+        for i, cyc in enumerate(signal_cycles):
+            is_ew = (i % 2 == 0)  # odd cycles (1,3,5..) switch TO EW, even (2,4,6..) switch TO NS
+            phase = "EW_GREEN" if is_ew else "NS_GREEN"
+            green_dur = cyc["ew_green"] if is_ew else cyc["ns_green"]
+
+            end_green = cyc["time"] + green_dur
+            if i + 1 < len(signal_cycles):
+                next_t = signal_cycles[i + 1]["time"]
+                phase_events.append((cyc["time"], next_t - YELLOW_DUR, phase, cyc))
+                yellow_phase = "EW_YELLOW" if is_ew else "NS_YELLOW"
+                phase_events.append((next_t - YELLOW_DUR, next_t, yellow_phase, None))
+            else:
+                phase_events.append((cyc["time"], cyc["time"] + green_dur, phase, cyc))
+
+    def get_phase_info(sim_time):
+        """Return (phase_name, cycle_data, time_remaining) for given sim time."""
+        for start, end, phase, cyc in phase_events:
+            if start <= sim_time < end:
+                return phase, cyc, end - sim_time
+        return "NS_GREEN", None, 0
 
     # {track_id: [(cx, cy), ...]} — unique cells per vehicle
     vehicle_cells = defaultdict(list)
@@ -424,15 +347,101 @@ def main():
 
         # Active predictions count
         active_preds = sum(1 for tid in current_frame_ids if tid in predictions)
+        sim_time = frame_number / fps
+        hud_x = frame_w - 700
         cv2.putText(frame, f"Frame: {frame_number}/{total_frames} | "
+                    f"t={sim_time:.1f}s | "
                     f"Active: {len(current_frame_ids)} | "
                     f"Predicting: {active_preds} | "
                     f"Completed: {stats['total_predicted']}",
-                    (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+                    (hud_x, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         cv2.putText(frame, f"Grid: {'ON' if show_grid else 'OFF'} (g) | "
                     f"ROIs: {'ON' if show_rois else 'OFF'} (r) | "
                     f"{'PAUSED' if paused else 'PLAYING'} (space)",
-                    (10, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (200, 200, 200), 1)
+                    (hud_x, 55), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (200, 200, 200), 1)
+
+        # ── Signal Phase Overlay ──────────────────────────────────────
+        if signal_cycles:
+            phase, cyc_data, time_left = get_phase_info(sim_time)
+
+            # Phase indicator — top left
+            panel_x = 20
+            panel_y = 10
+
+            # Background panel
+            overlay_panel = frame.copy()
+            panel_h = 160 if cyc_data else 80
+            cv2.rectangle(overlay_panel, (panel_x - 10, panel_y - 5),
+                          (panel_x + 410, panel_y + panel_h), (0, 0, 0), -1)
+            cv2.addWeighted(overlay_panel, 0.7, frame, 0.3, 0, frame)
+
+            # Phase color
+            if "NS" in phase and "YELLOW" not in phase:
+                phase_color = (0, 255, 0)  # green
+                phase_label = "NS GREEN"
+            elif "EW" in phase and "YELLOW" not in phase:
+                phase_color = (0, 200, 255)  # orange-ish
+                phase_label = "EW GREEN"
+            elif "YELLOW" in phase:
+                phase_color = (0, 255, 255)  # yellow
+                phase_label = phase.replace("_", " ")
+            else:
+                phase_color = (200, 200, 200)
+                phase_label = phase
+
+            # Traffic light icon
+            cv2.circle(frame, (panel_x + 10, panel_y + 18), 12, phase_color, -1)
+            cv2.circle(frame, (panel_x + 10, panel_y + 18), 13, (255, 255, 255), 2)
+
+            cv2.putText(frame, f"{phase_label}  ({time_left:.1f}s left)",
+                        (panel_x + 30, panel_y + 24),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.65, phase_color, 2)
+
+            # Progress bar for phase timer
+            bar_x = panel_x
+            bar_y = panel_y + 38
+            bar_w = 390
+            if cyc_data:
+                is_ew = "EW" in phase
+                total_dur = cyc_data["ew_green"] if is_ew else cyc_data["ns_green"]
+                elapsed = total_dur - time_left
+                progress = min(1.0, elapsed / total_dur) if total_dur > 0 else 0
+                cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_w, bar_y + 8), (60, 60, 60), -1)
+                cv2.rectangle(frame, (bar_x, bar_y), (bar_x + int(bar_w * progress), bar_y + 8), phase_color, -1)
+
+            # Scoring details when we have cycle data
+            if cyc_data:
+                y = panel_y + 58
+                ns_s = cyc_data["ns_score"]
+                ew_s = cyc_data["ew_score"]
+                ns_g = cyc_data["ns_green"]
+                ew_g = cyc_data["ew_green"]
+                total_s = ns_s + ew_s if (ns_s + ew_s) > 0 else 1
+
+                cv2.putText(frame, f"Cycle {cyc_data['cycle']}  |  {cyc_data['vehicles']} vehicles",
+                            (panel_x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                y += 22
+
+                # NS score bar
+                ns_pct = ns_s / total_s
+                cv2.putText(frame, f"NS: {ns_s:.1f}", (panel_x, y),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 1)
+                cv2.rectangle(frame, (panel_x + 80, y - 10), (panel_x + 80 + int(200 * ns_pct), y), (0, 255, 0), -1)
+                cv2.putText(frame, f"{ns_g:.0f}s", (panel_x + 290, y),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 1)
+                y += 22
+
+                # EW score bar
+                ew_pct = ew_s / total_s
+                cv2.putText(frame, f"EW: {ew_s:.1f}", (panel_x, y),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 200, 255), 1)
+                cv2.rectangle(frame, (panel_x + 80, y - 10), (panel_x + 80 + int(200 * ew_pct), y), (0, 200, 255), -1)
+                cv2.putText(frame, f"{ew_g:.0f}s", (panel_x + 290, y),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 200, 255), 1)
+                y += 22
+
+                cv2.putText(frame, f"Green: NS={ns_g:.0f}s  EW={ew_g:.0f}s  (budget 90s)",
+                            (panel_x, y), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (180, 180, 180), 1)
 
         if writer:
             writer.write(frame)

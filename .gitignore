@@ -40,5 +40,28 @@ Thumbs.db
 *Transitions_markov_model.json
 *pmc_model.json
 
+# SUMO simulation generated outputs
+data/sumo_simulation/**/decision_log.json
+data/sumo_simulation/**/metrics_*.json
+data/sumo_simulation/**/_frames/
+data/sumo_simulation/comparison_results.md
+
+# Simulated car data
+data/simulated_cars/
+data/simulated_cars_single/
+
+# LSTM generated outputs
+src/_out_*.png
+src/arrivals_log.csv
+
+# Docs and notes
+docs/project_report.md
+files_to_read
+lstm_code_explained.md
+TarfficLightAlgorithm_Yuloskov.pdf
+
+# Claude config
+.claude/
+
 # Ignore other projects
 vosk/
