@@ -18,7 +18,7 @@ from collections import defaultdict
 # CONSTANTS
 # ═══════════════════════════════════════════════════════════════════════════
 
-VELOCITY_THRESHOLD  = 1.0    # m/s — below this, vehicle is considered queued
+VELOCITY_THRESHOLD  = 4.0    # m/s — below this, vehicle is considered queued
 SMOOTHING_FRAMES    = 5      # number of frames to average velocity over
 ASSUMED_INTERSECTION_DIST = 30.0  # meters — assumed real-world distance across intersection
 INTERSECTION_MARGIN = 0.35   # center 35% of grid = intersection (excluded)
@@ -62,10 +62,12 @@ class QueueManager:
     Does NOT handle exit prediction — that's the LSTM's job.
     """
 
-    def __init__(self, grid_w, grid_h, fps=30.0):
+    def __init__(self, grid_w, grid_h, fps=30.0, intersection_dist=None, intersection_margin=None):
         self.grid_w = grid_w
         self.grid_h = grid_h
         self.fps = fps
+        self.intersection_dist = intersection_dist or ASSUMED_INTERSECTION_DIST
+        self.intersection_margin = intersection_margin if intersection_margin is not None else INTERSECTION_MARGIN
 
         # Approach data: [{"label": "A0", "center": (cx,cy), "cells": set(), "count": N}, ...]
         self.approaches = []
@@ -151,9 +153,7 @@ class QueueManager:
         # Keep only clusters that have cells near frame edges
         # Real approaches always have vehicles entering from the edge,
         # so at least one start cell must be within edge_margin of a border.
-        # Using cell membership (not center) prevents large clustering radii
-        # from dragging the center away from the edge and failing the check.
-        edge_margin = 0.20
+        edge_margin = 0.15
         def has_edge_cell(cl):
             for c in cl["start_cells"]:
                 if (c[0] < self.grid_w * edge_margin or
@@ -163,6 +163,41 @@ class QueueManager:
                     return True
             return False
         clusters = [cl for cl in clusters if has_edge_cell(cl)]
+
+        # Merge clusters on the same side of the intersection.
+        # With longer videos, a single approach can split into multiple
+        # clusters. Merge any two whose centers are on the same side.
+        cx_mid = self.grid_w / 2
+        cy_mid = self.grid_h / 2
+
+        def _side(cl):
+            cx, cy = cl["center"]
+            dx, dy = abs(cx - cx_mid), abs(cy - cy_mid)
+            if dy > dx:
+                return "top" if cy < cy_mid else "bottom"
+            else:
+                return "left" if cx < cx_mid else "right"
+
+        merged = True
+        while merged:
+            merged = False
+            for i in range(len(clusters)):
+                for j in range(i + 1, len(clusters)):
+                    if _side(clusters[i]) == _side(clusters[j]):
+                        ci, cj = clusters[i], clusters[j]
+                        total = ci["count"] + cj["count"]
+                        ci["center"] = (
+                            (ci["center"][0] * ci["count"] + cj["center"][0] * cj["count"]) / total,
+                            (ci["center"][1] * ci["count"] + cj["center"][1] * cj["count"]) / total,
+                        )
+                        ci["start_cells"] = ci["start_cells"] | cj["start_cells"]
+                        ci["tids"] = ci["tids"] + cj["tids"]
+                        ci["count"] = total
+                        clusters.pop(j)
+                        merged = True
+                        break
+                if merged:
+                    break
 
         # Build ROIs from trajectory paths
         self.approaches = []
@@ -229,12 +264,12 @@ class QueueManager:
         # Since we track pixel positions directly, we need pixel distance between approach centers
         # Approach centers are in grid coords → we'll convert when we have cell_size
         self._approach_pixel_dist = max_dist  # in grid-cell units for now
-        self.pixels_to_meters = ASSUMED_INTERSECTION_DIST / max_dist if max_dist > 0 else 0.05
+        self.pixels_to_meters = self.intersection_dist / max_dist if max_dist > 0 else 0.05
 
         a_i = self.approaches[pair[0]]["label"]
         a_j = self.approaches[pair[1]]["label"]
         print(f"  [calibration] {a_i} ↔ {a_j}: {max_dist:.1f} grid-cells = "
-              f"{ASSUMED_INTERSECTION_DIST}m assumed → "
+              f"{self.intersection_dist}m assumed → "
               f"{self.pixels_to_meters:.4f} m/grid-cell")
 
     def calibrate_with_cell_size(self, cell_size):
@@ -244,9 +279,9 @@ class QueueManager:
         """
         if hasattr(self, '_approach_pixel_dist') and self._approach_pixel_dist > 0:
             pixel_dist = self._approach_pixel_dist * cell_size
-            self.pixels_to_meters = ASSUMED_INTERSECTION_DIST / pixel_dist
+            self.pixels_to_meters = self.intersection_dist / pixel_dist
             print(f"  [calibration] refined: {pixel_dist:.0f}px = "
-                  f"{ASSUMED_INTERSECTION_DIST}m → "
+                  f"{self.intersection_dist}m → "
                   f"{self.pixels_to_meters:.5f} m/px")
 
     # ─────────────────────────────────────────────────────────────────────
@@ -254,7 +289,7 @@ class QueueManager:
     # ─────────────────────────────────────────────────────────────────────
 
     def _in_intersection(self, cx, cy):
-        m = INTERSECTION_MARGIN
+        m = self.intersection_margin
         return (self.grid_w * m < cx < self.grid_w * (1 - m) and
                 self.grid_h * m < cy < self.grid_h * (1 - m))
 
@@ -485,7 +520,7 @@ class QueueManager:
                               (px1 + cell_size, py1 + cell_size), color, -1)
 
         # Draw intersection exclusion zone
-        m = INTERSECTION_MARGIN
+        m = self.intersection_margin
         ix1 = int(self.grid_w * m * cell_size)
         iy1 = int(self.grid_h * m * cell_size)
         ix2 = int(self.grid_w * (1 - m) * cell_size)

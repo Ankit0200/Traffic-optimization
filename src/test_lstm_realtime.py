@@ -108,6 +108,10 @@ def main():
     parser.add_argument("--output", help="Path to save output video (e.g., output.mp4)")
     parser.add_argument("--trajectories", help="Path to trajectories JSON (for queue manager bootstrap)")
     parser.add_argument("--signal_log", help="Path to decision_log.json for signal phase overlay")
+    parser.add_argument("--intersection_dist", type=float, default=None,
+                        help="Real-world distance (meters) between farthest approaches (default: 30m)")
+    parser.add_argument("--intersection_margin", type=float, default=None,
+                        help="Intersection exclusion zone as fraction 0.0-0.5 (default: 0.35)")
     args = parser.parse_args()
 
     # Load predictor (LSTM — independent exit prediction)
@@ -142,7 +146,7 @@ def main():
     # ── Queue Manager Setup (approach-only, no exit coupling) ─────────
     grid_w = frame_w // model_cell_size + 1
     grid_h = frame_h // model_cell_size + 1
-    queue_mgr = QueueManager(grid_w, grid_h, fps=fps)
+    queue_mgr = QueueManager(grid_w, grid_h, fps=fps, intersection_dist=args.intersection_dist, intersection_margin=args.intersection_margin)
 
     if args.trajectories:
         print("\n── Setting up queue manager ──")

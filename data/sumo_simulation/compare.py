@@ -462,7 +462,7 @@ def run_adaptive():
             td = json.load(f)
         grid_w = WIDTH // CELL_SIZE + 1
         grid_h = HEIGHT // CELL_SIZE + 1
-        queue_mgr = QueueManager(grid_w, grid_h, fps=FPS)
+        queue_mgr = QueueManager(grid_w, grid_h, fps=FPS, intersection_dist=INTERSECTION_DIST, intersection_margin=INTERSECTION_MARGIN)
         queue_mgr.auto_discover_approaches(td["trajectories"], td["grid_cols"])
         queue_mgr.calibrate_with_cell_size(CELL_SIZE)
 
@@ -678,7 +678,7 @@ def run_max_pressure():
             td = json.load(f)
         grid_w = WIDTH // CELL_SIZE + 1
         grid_h = HEIGHT // CELL_SIZE + 1
-        queue_mgr = QueueManager(grid_w, grid_h, fps=FPS)
+        queue_mgr = QueueManager(grid_w, grid_h, fps=FPS, intersection_dist=INTERSECTION_DIST, intersection_margin=INTERSECTION_MARGIN)
         queue_mgr.auto_discover_approaches(td["trajectories"], td["grid_cols"])
         queue_mgr.calibrate_with_cell_size(CELL_SIZE)
 
@@ -872,6 +872,10 @@ def main():
 
 if __name__ == "__main__":
     MODE = sys.argv[2] if len(sys.argv) > 2 else "all"
+    # Optional: intersection distance in meters (e.g., python compare.py v3 all 200)
+    INTERSECTION_DIST = float(sys.argv[3]) if len(sys.argv) > 3 else None
+    # Optional: intersection margin 0.0-0.5 (e.g., python compare.py v3 all 200 0.25)
+    INTERSECTION_MARGIN = float(sys.argv[4]) if len(sys.argv) > 4 else None
 
     if MODE == "maxpressure":
         result = run_max_pressure()
