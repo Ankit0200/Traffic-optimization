@@ -1,0 +1,83 @@
+{
+  "mode": "per_version",
+  "baseline_params": {
+    "w_queue": 1.0,
+    "w_arrival": 3.0,
+    "w_through": 0.3,
+    "cycle_total": 90.0
+  },
+  "per_version": {
+    "v2": {
+      "best_params": {
+        "w_queue": 3.4424989352352524,
+        "w_arrival": 4.503760612153527,
+        "w_through": 0.6862297898495209,
+        "cycle_total": 53.39804353626886
+      },
+      "best_avg_wait": 11.515276119402985,
+      "baseline_avg_wait": 17.74028358208955,
+      "improvement_pct": 35.09,
+      "n_trials": 30
+    },
+    "v3": {
+      "best_params": {
+        "w_queue": 4.536247532331506,
+        "w_arrival": 6.511961317133473,
+        "w_through": 0.8313962884066304,
+        "cycle_total": 30.475506415488447
+      },
+      "best_avg_wait": 12.71063076923077,
+      "baseline_avg_wait": 16.204784615384614,
+      "improvement_pct": 21.56,
+      "n_trials": 30
+    },
+    "v4": {
+      "best_params": {
+        "w_queue": 4.489940808261727,
+        "w_arrival": 3.883394708929266,
+        "w_through": 0.9761572065185729,
+        "cycle_total": 30.475506415488447
+      },
+      "best_avg_wait": 8.263809782608694,
+      "baseline_avg_wait": 13.580146739130434,
+      "improvement_pct": 39.15,
+      "n_trials": 30
+    },
+    "v5": {
+      "best_params": {
+        "w_queue": 4.543034773147107,
+        "w_arrival": 7.9790908427463725,
+        "w_through": 0.7819120811458214,
+        "cycle_total": 30.0200377730937
+      },
+      "best_avg_wait": 6.529648351648351,
+      "baseline_avg_wait": 13.837593406593406,
+      "improvement_pct": 52.81,
+      "n_trials": 30
+    },
+    "v6": {
+      "best_params": {
+        "w_queue": 4.7986703595309725,
+        "w_arrival": 1.4373264981636975,
+        "w_through": 0.6617702146172969,
+        "cycle_total": 30.178122544295565
+      },
+      "best_avg_wait": 17.33459645232816,
+      "baseline_avg_wait": 23.607447893569848,
+      "improvement_pct": 26.57,
+      "n_trials": 30
+    },
+    "v7": {
+      "best_params": {
+        "w_queue": 4.178968939922067,
+        "w_arrival": 2.202157195714934,
+        "w_through": 0.18182496720710062,
+        "cycle_total": 52.00854118241206
+      },
+      "best_avg_wait": 4.1217744360902255,
+      "baseline_avg_wait": 5.510007518796993,
+      "improvement_pct": 25.19,
+      "n_trials": 30
+    }
+  }
+}

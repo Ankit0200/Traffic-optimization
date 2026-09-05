@@ -23,6 +23,7 @@ At every phase switch, these three signals are combined into a **demand score** 
 
 ## Scoring Weights
 
+
 | Weight | Value | Description |
 |--------|-------|-------------|
 | `W_QUEUE` | 1.0 | Weight for current queue count (vehicles stopped) |
@@ -125,6 +126,7 @@ If both scores are 0: equal split (45s / 45s).
 ## Why each component matters
 
 | Component | What it captures | Without it |
+
 |-----------|-----------------|------------|
 | **Queue count** | Immediate demand — vehicles stopped right now | Ignores current congestion |
 | **Arrival rate** | Demand trend — is traffic building or subsiding? | Reacts too late to surges |

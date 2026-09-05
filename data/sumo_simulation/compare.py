@@ -44,15 +44,42 @@ FPS = 30
 LSTM_MODEL_PATH = str(PROJECT_ROOT / "models" / f"fixed_{VERSION}_trajectories_lstm_model.pt")
 TRAJ_DATA_PATH = str(PROJECT_ROOT / "data" / "transitions" / "sumo_transition" / f"fixed_{VERSION}_trajectories.json")
 
-# Adaptive parameters
+# Adaptive parameters — load per-version optimized params if available
 MIN_GREEN = 10.0
 MAX_GREEN = 60.0
 YELLOW_DUR = 3.0
+ARRIVAL_LOOKAHEAD = 10.0
+
+# Defaults (used if no optimized_params.json exists)
 CYCLE_TOTAL = 90.0
 W_QUEUE = 1.0
 W_ARRIVAL = 3.0
 W_THROUGH = 0.3
-ARRIVAL_LOOKAHEAD = 10.0
+
+_opt_path = SCRIPT_DIR / "optimized_params.json"
+if _opt_path.exists():
+    import json as _json
+    with open(str(_opt_path)) as _f:
+        _opt = _json.load(_f)
+    if _opt.get("mode") == "per_version" and VERSION in _opt.get("per_version", {}):
+        _p = _opt["per_version"][VERSION]["best_params"]
+        W_QUEUE = _p["w_queue"]
+        W_ARRIVAL = _p["w_arrival"]
+        W_THROUGH = _p["w_through"]
+        CYCLE_TOTAL = _p["cycle_total"]
+        print(f"  [params] Loaded per-version optimized params for {VERSION}")
+    elif _opt.get("mode") == "global" and "best_params" in _opt:
+        _p = _opt["best_params"]
+        W_QUEUE = _p["w_queue"]
+        W_ARRIVAL = _p["w_arrival"]
+        W_THROUGH = _p["w_through"]
+        CYCLE_TOTAL = _p["cycle_total"]
+        print(f"  [params] Loaded global optimized params")
+    else:
+        print(f"  [params] Using default params (no match in optimized_params.json)")
+    del _json, _f, _opt, _p
+else:
+    print(f"  [params] Using default params (no optimized_params.json found)")
 
 NS_GREEN  = "GGGggrrrrrGGGggrrrrr"
 NS_YELLOW = "yyyyyrrrrryyyyyrrrrr"
@@ -191,78 +218,150 @@ def compute_scores_verbose(queue_mgr, arrival_est, lstm, vehicle_cells,
         if ns_tot > 0: ns_tr = ns_thr / ns_tot
         if ew_tot > 0: ew_tr = ew_thr / ew_tot
 
-    # 4. Compute scores
-    ns_score = compute_demand_score(ns_queue, ns_arrival, ns_tr)
-    ew_score = compute_demand_score(ew_queue, ew_arrival, ew_tr)
+    # 4. Compute intermediate terms for detailed logging
+    ns_projected = ns_arrival * ARRIVAL_LOOKAHEAD
+    ew_projected = ew_arrival * ARRIVAL_LOOKAHEAD
+    ns_queue_term = W_QUEUE * ns_queue
+    ew_queue_term = W_QUEUE * ew_queue
+    ns_arrival_term = W_ARRIVAL * ns_projected
+    ew_arrival_term = W_ARRIVAL * ew_projected
+    ns_base = ns_queue_term + ns_arrival_term
+    ew_base = ew_queue_term + ew_arrival_term
+    ns_bonus = 1.0 + W_THROUGH * ns_tr
+    ew_bonus = 1.0 + W_THROUGH * ew_tr
+
+    # 5. Compute final scores
+    ns_score = ns_base * ns_bonus
+    ew_score = ew_base * ew_bonus
     ns_green, ew_green = compute_green_split(ns_score, ew_score)
 
-    # 5. Print everything
+    # 6. Collect per-edge SUMO metrics
     n_vehicles = len(active_cells)
     total_wait_now = sum(traci.vehicle.getAccumulatedWaitingTime(v) for v in active_cells)
     avg_wait_now = total_wait_now / n_vehicles if n_vehicles > 0 else 0
 
-    print(f"\n{'='*75}")
-    print(f"  SIGNAL CHANGE — Cycle {cycle_count} @ t={sim_time:.1f}s")
-    print(f"  Switching to: {next_phase}")
-    print(f"{'='*75}")
-
-    print(f"\n  VEHICLES IN NETWORK: {n_vehicles}")
-    print(f"  TOTAL WAIT RIGHT NOW: {total_wait_now:.1f}s (avg {avg_wait_now:.1f}s/vehicle)")
-
-    # Per-edge vehicle counts + speeds
-    print(f"\n  ── Per-Edge Status ──")
+    edge_status = {}
     for edge in NS_EDGES + EW_EDGES:
-        count = traci.edge.getLastStepVehicleNumber(edge)
-        halting = traci.edge.getLastStepHaltingNumber(edge)
-        speed = traci.edge.getLastStepMeanSpeed(edge)
-        direction = EDGE_TO_DIR[edge]
-        print(f"    {edge} ({direction}): {count} vehicles, {halting} halting, "
-              f"avg speed {speed:.1f} m/s")
+        edge_status[edge] = {
+            "direction": EDGE_TO_DIR[edge],
+            "vehicle_count": traci.edge.getLastStepVehicleNumber(edge),
+            "halting_count": traci.edge.getLastStepHaltingNumber(edge),
+            "mean_speed_ms": round(traci.edge.getLastStepMeanSpeed(edge), 2),
+        }
 
-    # Queue details
-    print(f"\n  ── Queue Detection (QueueManager) ──")
-    if queue_detail:
-        for label, d in sorted(queue_detail.items()):
-            print(f"    {label} ({d['dir']}): {d['queued']} queued / {d['total']} total")
-    print(f"    TOTAL → NS: {ns_queue} queued | EW: {ew_queue} queued")
-
-    # Arrival rates
-    print(f"\n  ── Arrival Rates ──")
-    for label, d in sorted(arrival_detail.items()):
-        print(f"    {label} ({d['dir']}): {d['rate']:.3f} veh/s")
-    print(f"    TOTAL → NS: {ns_arrival:.3f} veh/s | EW: {ew_arrival:.3f} veh/s")
-    print(f"    Projected arrivals (next {ARRIVAL_LOOKAHEAD}s): "
-          f"NS: {ns_arrival * ARRIVAL_LOOKAHEAD:.1f} | EW: {ew_arrival * ARRIVAL_LOOKAHEAD:.1f}")
-
-    # LSTM predictions
-    print(f"\n  ── LSTM Predictions ──")
-    if lstm_predictions:
-        for p in sorted(lstm_predictions, key=lambda x: x["vid"]):
-            mov = "THROUGH" if p["through"] else "TURN"
-            print(f"    Vehicle {p['vid']}: entry={p['entry']} → pred={p['pred']} "
-                  f"({p['conf']:.0%} conf, {p['steps']} steps) [{mov}]")
-        print(f"    Through ratios → NS: {ns_thr}/{ns_tot} ({ns_tr:.0%}) | "
-              f"EW: {ew_thr}/{ew_tot} ({ew_tr:.0%})")
-    else:
-        print(f"    No confident predictions this cycle")
-
-    # Final scoring
-    print(f"\n  ── Scoring ──")
-    print(f"    NS: queue={ns_queue} × {W_QUEUE} + arrival={ns_arrival:.2f} × {W_ARRIVAL} × "
-          f"lookahead={ARRIVAL_LOOKAHEAD} → through_bonus={1 + W_THROUGH * ns_tr:.2f}")
-    print(f"    EW: queue={ew_queue} × {W_QUEUE} + arrival={ew_arrival:.2f} × {W_ARRIVAL} × "
-          f"lookahead={ARRIVAL_LOOKAHEAD} → through_bonus={1 + W_THROUGH * ew_tr:.2f}")
-    print(f"    NS_SCORE = {ns_score:.2f} | EW_SCORE = {ew_score:.2f}")
-
-    # Green allocation
-    print(f"\n  ── Green Allocation ──")
     ns_pct = ns_score / (ns_score + ew_score) * 100 if (ns_score + ew_score) > 0.01 else 50
     ew_pct = 100 - ns_pct
-    print(f"    NS: {ns_green:.1f}s ({ns_pct:.0f}%) | EW: {ew_green:.1f}s ({ew_pct:.0f}%)")
-    print(f"    (min={MIN_GREEN}s, max={MAX_GREEN}s, budget={CYCLE_TOTAL}s)")
+
+    # 7. Build detailed log entry
+    detailed_entry = {
+        "cycle": cycle_count,
+        "sim_time_s": round(sim_time, 2),
+        "next_phase": next_phase,
+        "vehicles_in_network": n_vehicles,
+        "total_accumulated_wait_s": round(total_wait_now, 2),
+        "avg_wait_per_vehicle_s": round(avg_wait_now, 2),
+
+        "per_edge": edge_status,
+
+        "queue_detection": {
+            "per_approach": {label: {"direction": d["dir"], "queued": d["queued"], "total": d["total"]}
+                            for label, d in sorted(queue_detail.items())} if queue_detail else {},
+            "ns_queue_count": ns_queue,
+            "ew_queue_count": ew_queue,
+        },
+
+        "arrival_rates": {
+            "per_approach": {label: {"direction": d["dir"], "rate_veh_per_s": round(d["rate"], 4)}
+                            for label, d in sorted(arrival_detail.items())},
+            "ns_arrival_rate": round(ns_arrival, 4),
+            "ew_arrival_rate": round(ew_arrival, 4),
+            "lookahead_s": ARRIVAL_LOOKAHEAD,
+            "ns_projected_arrivals": round(ns_projected, 2),
+            "ew_projected_arrivals": round(ew_projected, 2),
+        },
+
+        "lstm_predictions": {
+            "vehicles": [
+                {"vehicle_id": p["vid"], "entry_dir": p["entry"], "predicted_exit": p["pred"],
+                 "confidence": round(p["conf"], 3), "trajectory_steps": p["steps"],
+                 "movement": "THROUGH" if p["through"] else "TURN"}
+                for p in sorted(lstm_predictions, key=lambda x: x["vid"])
+            ] if lstm_predictions else [],
+            "ns_through": ns_thr, "ns_total": ns_tot, "ns_through_ratio": round(ns_tr, 3),
+            "ew_through": ew_thr, "ew_total": ew_tot, "ew_through_ratio": round(ew_tr, 3),
+        },
+
+        "scoring": {
+            "weights_used": {
+                "W_QUEUE": W_QUEUE,
+                "W_ARRIVAL": W_ARRIVAL,
+                "W_THROUGH": W_THROUGH,
+                "CYCLE_TOTAL": CYCLE_TOTAL,
+            },
+            "ns": {
+                "queue_count": ns_queue,
+                "queue_term": round(ns_queue_term, 3),
+                "formula_queue": f"{W_QUEUE} × {ns_queue} = {ns_queue_term:.3f}",
+                "arrival_rate": round(ns_arrival, 4),
+                "projected_arrivals": round(ns_projected, 2),
+                "arrival_term": round(ns_arrival_term, 3),
+                "formula_arrival": f"{W_ARRIVAL} × {ns_arrival:.4f} × {ARRIVAL_LOOKAHEAD} = {ns_arrival_term:.3f}",
+                "base_score": round(ns_base, 3),
+                "formula_base": f"{ns_queue_term:.3f} + {ns_arrival_term:.3f} = {ns_base:.3f}",
+                "through_ratio": round(ns_tr, 3),
+                "through_bonus": round(ns_bonus, 3),
+                "formula_bonus": f"1 + {W_THROUGH} × {ns_tr:.3f} = {ns_bonus:.3f}",
+                "final_score": round(ns_score, 3),
+                "formula_final": f"{ns_base:.3f} × {ns_bonus:.3f} = {ns_score:.3f}",
+            },
+            "ew": {
+                "queue_count": ew_queue,
+                "queue_term": round(ew_queue_term, 3),
+                "formula_queue": f"{W_QUEUE} × {ew_queue} = {ew_queue_term:.3f}",
+                "arrival_rate": round(ew_arrival, 4),
+                "projected_arrivals": round(ew_projected, 2),
+                "arrival_term": round(ew_arrival_term, 3),
+                "formula_arrival": f"{W_ARRIVAL} × {ew_arrival:.4f} × {ARRIVAL_LOOKAHEAD} = {ew_arrival_term:.3f}",
+                "base_score": round(ew_base, 3),
+                "formula_base": f"{ew_queue_term:.3f} + {ew_arrival_term:.3f} = {ew_base:.3f}",
+                "through_ratio": round(ew_tr, 3),
+                "through_bonus": round(ew_bonus, 3),
+                "formula_bonus": f"1 + {W_THROUGH} × {ew_tr:.3f} = {ew_bonus:.3f}",
+                "final_score": round(ew_score, 3),
+                "formula_final": f"{ew_base:.3f} × {ew_bonus:.3f} = {ew_score:.3f}",
+            },
+        },
+
+        "green_allocation": {
+            "ns_score": round(ns_score, 3),
+            "ew_score": round(ew_score, 3),
+            "total_score": round(ns_score + ew_score, 3),
+            "ns_raw_fraction": round(ns_pct / 100, 4),
+            "formula_ns_green": f"clamp({CYCLE_TOTAL} × {ns_score:.3f} / {ns_score + ew_score:.3f}, {MIN_GREEN}, {MAX_GREEN}) = {ns_green:.1f}s",
+            "formula_ew_green": f"clamp({CYCLE_TOTAL} × {ew_score:.3f} / {ns_score + ew_score:.3f}, {MIN_GREEN}, {MAX_GREEN}) = {ew_green:.1f}s",
+            "ns_green_s": round(ns_green, 2),
+            "ew_green_s": round(ew_green, 2),
+            "ns_pct": round(ns_pct, 1),
+            "ew_pct": round(ew_pct, 1),
+            "min_green": MIN_GREEN,
+            "max_green": MAX_GREEN,
+            "cycle_total": CYCLE_TOTAL,
+        },
+    }
+
+    # 8. Print summary to console
+    print(f"\n{'='*75}")
+    print(f"  SIGNAL CHANGE — Cycle {cycle_count} @ t={sim_time:.1f}s → {next_phase}")
+    print(f"{'='*75}")
+    print(f"  Vehicles: {n_vehicles} | Avg wait: {avg_wait_now:.1f}s")
+    print(f"  Queues → NS: {ns_queue} | EW: {ew_queue}")
+    print(f"  Arrivals → NS: {ns_arrival:.3f} | EW: {ew_arrival:.3f} veh/s")
+    print(f"  Through → NS: {ns_thr}/{ns_tot} ({ns_tr:.0%}) | EW: {ew_thr}/{ew_tot} ({ew_tr:.0%})")
+    print(f"  Scores → NS: {ns_score:.2f} | EW: {ew_score:.2f}")
+    print(f"  Green  → NS: {ns_green:.1f}s ({ns_pct:.0f}%) | EW: {ew_green:.1f}s ({ew_pct:.0f}%)")
     print(f"{'='*75}")
 
-    return ns_score, ew_score, ns_green, ew_green
+    return ns_score, ew_score, ns_green, ew_green, detailed_entry
 
 
 # ── Encode video from frames ─────────────────────────────────────────────
@@ -568,16 +667,11 @@ def run_adaptive():
 
             elif current_phase == "NS_YELLOW" and phase_timer >= YELLOW_DUR:
                 cycle_count += 1
-                ns_s, ew_s, ns_green_dur, ew_green_dur = compute_scores_verbose(
+                ns_s, ew_s, ns_green_dur, ew_green_dur, detail = compute_scores_verbose(
                     queue_mgr, arrival_est, lstm, vehicle_cells,
                     vehicle_entry_dir, approach_to_dir, active_cells,
                     frame_count, sim_time, cycle_count, "EW_GREEN")
-                decision_log.append({
-                    "cycle": cycle_count, "time": round(sim_time, 1),
-                    "ns_score": round(ns_s, 2), "ew_score": round(ew_s, 2),
-                    "ns_green": round(ns_green_dur, 1), "ew_green": round(ew_green_dur, 1),
-                    "vehicles": n,
-                })
+                decision_log.append(detail)
                 traci.trafficlight.setRedYellowGreenState("C", EW_GREEN)
                 current_phase = "EW_GREEN"
                 phase_timer = 0.0
@@ -589,16 +683,11 @@ def run_adaptive():
 
             elif current_phase == "EW_YELLOW" and phase_timer >= YELLOW_DUR:
                 cycle_count += 1
-                ns_s, ew_s, ns_green_dur, ew_green_dur = compute_scores_verbose(
+                ns_s, ew_s, ns_green_dur, ew_green_dur, detail = compute_scores_verbose(
                     queue_mgr, arrival_est, lstm, vehicle_cells,
                     vehicle_entry_dir, approach_to_dir, active_cells,
                     frame_count, sim_time, cycle_count, "NS_GREEN")
-                decision_log.append({
-                    "cycle": cycle_count, "time": round(sim_time, 1),
-                    "ns_score": round(ns_s, 2), "ew_score": round(ew_s, 2),
-                    "ns_green": round(ns_green_dur, 1), "ew_green": round(ew_green_dur, 1),
-                    "vehicles": n,
-                })
+                decision_log.append(detail)
                 traci.trafficlight.setRedYellowGreenState("C", NS_GREEN)
                 current_phase = "NS_GREEN"
                 phase_timer = 0.0
