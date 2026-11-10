@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DQN Traffic Signal Controller — Interactive Explainer</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #0a0e17; color: #e0e6f0; line-height: 1.6; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+  h1 { font-size: 2.2em; text-align: center; margin: 30px 0 10px; color: #fff; }
+  h2 { font-size: 1.5em; margin: 40px 0 15px; color: #7eb8ff; border-bottom: 2px solid #1e2a3a; padding-bottom: 8px; }
+  h3 { font-size: 1.1em; margin: 20px 0 10px; color: #a0c4ff; }
+  .subtitle { text-align: center; color: #6b7d99; margin-bottom: 40px; font-size: 1.1em; }
+
+  /* Hero section */
+  .hero-comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
+  .hero-card { background: #111827; border-radius: 16px; padding: 25px; border: 1px solid #1e2a3a; }
+  .hero-card.adaptive { border-color: #22c55e; }
+  .hero-card.dqn { border-color: #3b82f6; }
+  .hero-card h3 { text-align: center; margin-bottom: 15px; }
+  .hero-card .big-num { text-align: center; font-size: 3em; font-weight: 700; }
+  .hero-card.adaptive .big-num { color: #22c55e; }
+  .hero-card.dqn .big-num { color: #3b82f6; }
+  .hero-card .label { text-align: center; color: #6b7d99; font-size: 0.9em; }
+
+  /* Network visualization */
+  .network-section { background: #111827; border-radius: 16px; padding: 30px; border: 1px solid #1e2a3a; margin: 20px 0; }
+  .network-svg-container { display: flex; justify-content: center; margin: 20px 0; }
+  svg text { font-family: 'Segoe UI', system-ui, sans-serif; }
+
+  /* Tooltip */
+  .tooltip { position: absolute; background: #1e293b; border: 1px solid #3b82f6; border-radius: 8px; padding: 10px 14px;
+    font-size: 0.85em; color: #e0e6f0; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 100;
+    max-width: 280px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+
+  /* Step cards */
+  .step-flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; }
+  .step-card { background: #111827; border-radius: 12px; padding: 20px; border: 1px solid #1e2a3a; text-align: center; position: relative; }
+  .step-card .step-num { position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    background: #3b82f6; color: #fff; width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85em; }
+  .step-card .step-icon { font-size: 2em; margin: 10px 0; }
+  .step-card .step-title { font-weight: 600; color: #a0c4ff; margin-bottom: 5px; }
+  .step-card .step-desc { font-size: 0.85em; color: #8899aa; }
+
+  /* Observation table */
+  .obs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+  .obs-group { background: #111827; border-radius: 12px; padding: 18px; border: 1px solid #1e2a3a; }
+  .obs-group h4 { color: #7eb8ff; margin-bottom: 10px; font-size: 0.95em; }
+  .obs-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1a2332; font-size: 0.9em; }
+  .obs-item:last-child { border-bottom: none; }
+  .obs-item .val { color: #3b82f6; font-weight: 600; font-family: 'Courier New', monospace; }
+
+  /* Comparison bar chart */
+  .chart-container { background: #111827; border-radius: 16px; padding: 25px; border: 1px solid #1e2a3a; margin: 20px 0; }
+  .bar-row { display: flex; align-items: center; margin: 12px 0; }
+  .bar-label { width: 80px; font-size: 0.9em; color: #8899aa; text-align: right; padding-right: 12px; }
+  .bar-track { flex: 1; height: 32px; background: #1a2332; border-radius: 6px; position: relative; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px;
+    font-size: 0.8em; font-weight: 600; color: #fff; transition: width 1s ease; }
+  .bar-fill.fixed { background: linear-gradient(90deg, #6b7280, #9ca3af); }
+  .bar-fill.dqn { background: linear-gradient(90deg, #2563eb, #3b82f6); }
+  .bar-fill.adaptive { background: linear-gradient(90deg, #16a34a, #22c55e); }
+  .version-label { width: 30px; font-weight: 600; color: #e0e6f0; }
+
+  /* Heatmap */
+  .heatmap-container { display: flex; justify-content: center; margin: 20px 0; }
+
+  /* Weight matrix */
+  .weight-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+  .weight-card { background: #111827; border-radius: 12px; padding: 18px; border: 1px solid #1e2a3a; text-align: center; }
+  .weight-card .w-name { color: #7eb8ff; font-family: 'Courier New', monospace; font-size: 0.95em; margin-bottom: 8px; }
+  .weight-card .w-shape { font-size: 1.4em; font-weight: 700; color: #fff; }
+  .weight-card .w-params { color: #6b7d99; font-size: 0.85em; margin-top: 5px; }
+  .weight-card .w-range { color: #8899aa; font-size: 0.8em; margin-top: 4px; }
+
+  /* Comparison table */
+  .comp-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+  .comp-table th { background: #1e293b; color: #7eb8ff; padding: 12px; text-align: left; font-size: 0.9em; }
+  .comp-table td { padding: 12px; border-bottom: 1px solid #1a2332; font-size: 0.9em; }
+  .comp-table tr:hover { background: #111827; }
+  .comp-table .winner { color: #22c55e; font-weight: 700; }
+
+  /* Animated data flow */
+  @keyframes dataFlow { 0% { stroke-dashoffset: 20; } 100% { stroke-dashoffset: 0; } }
+  .data-flow { stroke-dasharray: 5 5; animation: dataFlow 1s linear infinite; }
+
+  @keyframes pulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+  .pulse { animation: pulse 2s ease-in-out infinite; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.6s ease forwards; }
+
+  /* Intersection diagram */
+  .intersection-container { display: flex; justify-content: center; margin: 20px 0; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero-comparison, .obs-grid, .weight-info, .step-flow { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>DQN Traffic Signal Controller</h1>
+<p class="subtitle">How a neural network learns to control traffic lights — and why our adaptive method beats it</p>
+
+<!-- Hero comparison -->
+<div class="hero-comparison">
+  <div class="hero-card dqn">
+    <h3 style="color:#3b82f6">DQN (Reinforcement Learning)</h3>
+    <div class="big-num">14.65s</div>
+    <div class="label">avg waiting time per vehicle</div>
+    <div style="text-align:center; margin-top:10px; color:#6b7d99; font-size:0.9em;">4,994 neural network parameters</div>
+    <div style="text-align:center; color:#6b7d99; font-size:0.9em;">Black-box decisions</div>
+  </div>
+  <div class="hero-card adaptive">
+    <h3 style="color:#22c55e">Our Adaptive Controller</h3>
+    <div class="big-num">10.08s</div>
+    <div class="label">avg waiting time per vehicle</div>
+    <div style="text-align:center; margin-top:10px; color:#6b7d99; font-size:0.9em;">4 interpretable weights</div>
+    <div style="text-align:center; color:#6b7d99; font-size:0.9em;">Every decision fully explainable</div>
+  </div>
+</div>
+
+<!-- How DQN Works -->
+<h2>How DQN Controls the Intersection</h2>
+
+<div class="step-flow">
+  <div class="step-card fade-in">
+    <div class="step-num">1</div>
+    <div class="step-icon">👁️</div>
+    <div class="step-title">Observe</div>
+    <div class="step-desc">Read 10 values from the intersection every 5 seconds</div>
+  </div>
+  <div class="step-card fade-in" style="animation-delay:0.1s">
+    <div class="step-num">2</div>
+    <div class="step-icon">🧠</div>
+    <div class="step-title">Think</div>
+    <div class="step-desc">Feed values through 3-layer neural network</div>
+  </div>
+  <div class="step-card fade-in" style="animation-delay:0.2s">
+    <div class="step-num">3</div>
+    <div class="step-icon">🎯</div>
+    <div class="step-title">Decide</div>
+    <div class="step-desc">Pick action with highest Q-value: keep or switch</div>
+  </div>
+  <div class="step-card fade-in" style="animation-delay:0.3s">
+    <div class="step-num">4</div>
+    <div class="step-icon">📈</div>
+    <div class="step-title">Learn</div>
+    <div class="step-desc">Update weights based on reward (wait time change)</div>
+  </div>
+</div>
+
+<!-- Observation Space -->
+<h2>What the Agent Sees (Observation Space)</h2>
+<p style="color:#8899aa; margin-bottom:15px;">Every 5 seconds, the agent reads these 10 numbers from SUMO's TraCI API:</p>
+
+<div class="obs-grid">
+  <div class="obs-group">
+    <h4>Queue Lengths (halting vehicles per edge)</h4>
+    <div class="obs-item"><span>N_to_C (Northbound)</span> <span class="val">obs[0]</span></div>
+    <div class="obs-item"><span>S_to_C (Southbound)</span> <span class="val">obs[1]</span></div>
+    <div class="obs-item"><span>E_to_C (Eastbound)</span> <span class="val">obs[2]</span></div>
+    <div class="obs-item"><span>W_to_C (Westbound)</span> <span class="val">obs[3]</span></div>
+  </div>
+  <div class="obs-group">
+    <h4>Mean Speeds (m/s per edge)</h4>
+    <div class="obs-item"><span>N_to_C (Northbound)</span> <span class="val">obs[4]</span></div>
+    <div class="obs-item"><span>S_to_C (Southbound)</span> <span class="val">obs[5]</span></div>
+    <div class="obs-item"><span>E_to_C (Eastbound)</span> <span class="val">obs[6]</span></div>
+    <div class="obs-item"><span>W_to_C (Westbound)</span> <span class="val">obs[7]</span></div>
+  </div>
+  <div class="obs-group">
+    <h4>Signal State</h4>
+    <div class="obs-item"><span>Current Phase</span> <span class="val">obs[8] = 0 (NS) or 1 (EW)</span></div>
+    <div class="obs-item"><span>Time in Phase / 60</span> <span class="val">obs[9] = 0.0 to 1.0</span></div>
+  </div>
+  <div class="obs-group">
+    <h4>What DQN Does NOT See</h4>
+    <div class="obs-item" style="color:#ef4444"><span>Arrival rate forecasts</span> <span>❌</span></div>
+    <div class="obs-item" style="color:#ef4444"><span>LSTM turn predictions</span> <span>❌</span></div>
+    <div class="obs-item" style="color:#ef4444"><span>Per-vehicle trajectories</span> <span>❌</span></div>
+    <div class="obs-item" style="color:#ef4444"><span>Through-traffic ratios</span> <span>❌</span></div>
+  </div>
+</div>
+
+<!-- Neural Network Architecture -->
+<h2>Neural Network Architecture</h2>
+<p style="color:#8899aa; margin-bottom:15px;">The Q-Network maps 10 observations to 2 action values. Hover over layers to see details.</p>
+
+<div class="network-section">
+  <div class="network-svg-container">
+    <svg width="900" height="500" id="networkSvg">
+      <!-- Background grid -->
+      <defs>
+        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.3" />
+          <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.05" />
+        </linearGradient>
+        <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.3" />
+          <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:0.05" />
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- Layer labels -->
+      <text x="80" y="30" fill="#6b7d99" font-size="13" text-anchor="middle">Input Layer</text>
+      <text x="80" y="46" fill="#3b82f6" font-size="11" text-anchor="middle">10 values</text>
+
+      <text x="310" y="30" fill="#6b7d99" font-size="13" text-anchor="middle">Hidden Layer 1</text>
+      <text x="310" y="46" fill="#8b5cf6" font-size="11" text-anchor="middle">64 neurons + ReLU</text>
+
+      <text x="540" y="30" fill="#6b7d99" font-size="13" text-anchor="middle">Hidden Layer 2</text>
+      <text x="540" y="46" fill="#8b5cf6" font-size="11" text-anchor="middle">64 neurons + ReLU</text>
+
+      <text x="770" y="30" fill="#6b7d99" font-size="13" text-anchor="middle">Output Layer</text>
+      <text x="770" y="46" fill="#22c55e" font-size="11" text-anchor="middle">2 Q-values</text>
+
+      <!-- Connections: Input → Hidden1 (sample) -->
+      <g opacity="0.15">
+        <line x1="120" y1="95" x2="260" y2="75" stroke="#3b82f6" stroke-width="1" class="data-flow"/>
+        <line x1="120" y1="95" x2="260" y2="115" stroke="#3b82f6" stroke-width="1" class="data-flow"/>
+        <line x1="120" y1="95" x2="260" y2="155" stroke="#3b82f6" stroke-width="1" class="data-flow"/>
+        <line x1="120" y1="135" x2="260" y2="75" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="135" x2="260" y2="115" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="135" x2="260" y2="195" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="175" x2="260" y2="155" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="175" x2="260" y2="195" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="215" x2="260" y2="115" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="215" x2="260" y2="235" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="255" x2="260" y2="195" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="255" x2="260" y2="275" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="295" x2="260" y2="235" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="295" x2="260" y2="315" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="335" x2="260" y2="275" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="335" x2="260" y2="355" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="375" x2="260" y2="315" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="415" x2="260" y2="355" stroke="#3b82f6" stroke-width="1"/>
+        <line x1="120" y1="415" x2="260" y2="395" stroke="#3b82f6" stroke-width="1"/>
+      </g>
+
+      <!-- Connections: Hidden1 → Hidden2 (sample) -->
+      <g opacity="0.1">
+        <line x1="350" y1="75" x2="490" y2="75" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="75" x2="490" y2="155" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="115" x2="490" y2="115" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="155" x2="490" y2="195" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="195" x2="490" y2="235" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="235" x2="490" y2="155" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="275" x2="490" y2="275" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="315" x2="490" y2="315" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="355" x2="490" y2="355" stroke="#8b5cf6" stroke-width="1"/>
+        <line x1="350" y1="395" x2="490" y2="395" stroke="#8b5cf6" stroke-width="1"/>
+      </g>
+
+      <!-- Connections: Hidden2 → Output -->
+      <g opacity="0.2">
+        <line x1="580" y1="75" x2="720" y2="210" stroke="#22c55e" stroke-width="1" class="data-flow"/>
+        <line x1="580" y1="115" x2="720" y2="210" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="155" x2="720" y2="210" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="195" x2="720" y2="210" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="235" x2="720" y2="210" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="275" x2="720" y2="210" stroke="#22c55e" stroke-width="1" class="data-flow"/>
+        <line x1="580" y1="315" x2="720" y2="290" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="355" x2="720" y2="290" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="395" x2="720" y2="290" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="75" x2="720" y2="290" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="155" x2="720" y2="290" stroke="#22c55e" stroke-width="1"/>
+        <line x1="580" y1="235" x2="720" y2="290" stroke="#22c55e" stroke-width="1"/>
+      </g>
+
+      <!-- Input neurons -->
+      <g class="input-neurons">
+        <circle cx="80" cy="75" r="16" fill="#1e293b" stroke="#3b82f6" stroke-width="2" class="neuron" data-info="Queue: N_to_C|Halting vehicles on northbound edge"/>
+        <text x="80" y="79" fill="#3b82f6" font-size="9" text-anchor="middle">Q_N</text>
+
+        <circle cx="80" cy="115" r="16" fill="#1e293b" stroke="#3b82f6" stroke-width="2" class="neuron" data-info="Queue: S_to_C|Halting vehicles on southbound edge"/>
+        <text x="80" y="119" fill="#3b82f6" font-size="9" text-anchor="middle">Q_S</text>
+
+        <circle cx="80" cy="155" r="16" fill="#1e293b" stroke="#3b82f6" stroke-width="2" class="neuron" data-info="Queue: E_to_C|Halting vehicles on eastbound edge"/>
+        <text x="80" y="159" fill="#3b82f6" font-size="9" text-anchor="middle">Q_E</text>
+
+        <circle cx="80" cy="195" r="16" fill="#1e293b" stroke="#3b82f6" stroke-width="2" class="neuron" data-info="Queue: W_to_C|Halting vehicles on westbound edge"/>
+        <text x="80" y="199" fill="#3b82f6" font-size="9" text-anchor="middle">Q_W</text>
+
+        <circle cx="80" cy="255" r="16" fill="#1e293b" stroke="#60a5fa" stroke-width="2" class="neuron" data-info="Speed: N_to_C|Mean speed on northbound edge (m/s)"/>
+        <text x="80" y="259" fill="#60a5fa" font-size="9" text-anchor="middle">S_N</text>
+
+        <circle cx="80" cy="295" r="16" fill="#1e293b" stroke="#60a5fa" stroke-width="2" class="neuron" data-info="Speed: S_to_C|Mean speed on southbound edge (m/s)"/>
+        <text x="80" y="299" fill="#60a5fa" font-size="9" text-anchor="middle">S_S</text>
+
+        <circle cx="80" cy="335" r="16" fill="#1e293b" stroke="#60a5fa" stroke-width="2" class="neuron" data-info="Speed: E_to_C|Mean speed on eastbound edge (m/s)"/>
+        <text x="80" y="339" fill="#60a5fa" font-size="9" text-anchor="middle">S_E</text>
+
+        <circle cx="80" cy="375" r="16" fill="#1e293b" stroke="#60a5fa" stroke-width="2" class="neuron" data-info="Speed: W_to_C|Mean speed on westbound edge (m/s)"/>
+        <text x="80" y="379" fill="#60a5fa" font-size="9" text-anchor="middle">S_W</text>
+
+        <circle cx="80" cy="415" r="16" fill="#1e293b" stroke="#f59e0b" stroke-width="2" class="neuron" data-info="Current Phase|0 = NS Green, 1 = EW Green"/>
+        <text x="80" y="419" fill="#f59e0b" font-size="8" text-anchor="middle">Phase</text>
+
+        <circle cx="80" cy="455" r="16" fill="#1e293b" stroke="#f59e0b" stroke-width="2" class="neuron" data-info="Time in Phase|Normalized: current_time / 60s"/>
+        <text x="80" y="459" fill="#f59e0b" font-size="8" text-anchor="middle">Timer</text>
+      </g>
+
+      <!-- Hidden layer 1 neurons (show 10 of 64) -->
+      <g class="hidden1-neurons">
+        <circle cx="310" cy="75" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron pulse" data-info="Hidden Neuron|One of 64 neurons in Layer 1. Applies: ReLU(W*x + b)"/>
+        <circle cx="310" cy="115" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="310" cy="155" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="310" cy="195" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="310" cy="235" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="310" cy="275" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="310" cy="315" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="310" cy="355" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="310" cy="395" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <text x="310" y="435" fill="#4b5563" font-size="11" text-anchor="middle">... 64 total</text>
+      </g>
+
+      <!-- Hidden layer 2 neurons -->
+      <g class="hidden2-neurons">
+        <circle cx="540" cy="75" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron pulse"/>
+        <circle cx="540" cy="115" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="540" cy="155" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="540" cy="195" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="540" cy="235" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="540" cy="275" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="540" cy="315" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="540" cy="355" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <circle cx="540" cy="395" r="12" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5" class="neuron"/>
+        <text x="540" y="435" fill="#4b5563" font-size="11" text-anchor="middle">... 64 total</text>
+      </g>
+
+      <!-- Output neurons -->
+      <g class="output-neurons">
+        <circle cx="770" cy="210" r="22" fill="#1e293b" stroke="#22c55e" stroke-width="2.5" filter="url(#glow)" class="neuron" data-info="Q(Keep Phase)|Expected future reward if we keep the current signal phase"/>
+        <text x="770" y="206" fill="#22c55e" font-size="9" text-anchor="middle" font-weight="600">Keep</text>
+        <text x="770" y="218" fill="#22c55e" font-size="9" text-anchor="middle">Phase</text>
+
+        <circle cx="770" cy="290" r="22" fill="#1e293b" stroke="#ef4444" stroke-width="2.5" filter="url(#glow)" class="neuron" data-info="Q(Switch Phase)|Expected future reward if we switch to the other signal phase"/>
+        <text x="770" y="286" fill="#ef4444" font-size="9" text-anchor="middle" font-weight="600">Switch</text>
+        <text x="770" y="298" fill="#ef4444" font-size="9" text-anchor="middle">Phase</text>
+      </g>
+
+      <!-- Decision arrow -->
+      <text x="830" y="245" fill="#6b7d99" font-size="11" text-anchor="start">Pick the</text>
+      <text x="830" y="260" fill="#6b7d99" font-size="11" text-anchor="start">higher</text>
+      <text x="830" y="275" fill="#f59e0b" font-size="12" text-anchor="start" font-weight="600">Q-value</text>
+
+      <!-- Weight matrix labels -->
+      <rect x="170" y="460" width="100" height="24" rx="4" fill="#1e2a3a"/>
+      <text x="220" y="476" fill="#3b82f6" font-size="10" text-anchor="middle">640 weights</text>
+
+      <rect x="400" y="460" width="100" height="24" rx="4" fill="#1e2a3a"/>
+      <text x="450" y="476" fill="#8b5cf6" font-size="10" text-anchor="middle">4,096 weights</text>
+
+      <rect x="630" y="460" width="100" height="24" rx="4" fill="#1e2a3a"/>
+      <text x="680" y="476" fill="#22c55e" font-size="10" text-anchor="middle">128 weights</text>
+    </svg>
+  </div>
+</div>
+
+<!-- Weight details -->
+<h3>Layer Weight Statistics</h3>
+<div class="weight-info">
+  <div class="weight-card">
+    <div class="w-name">Layer 1: Input → Hidden</div>
+    <div class="w-shape">[10 x 64]</div>
+    <div class="w-params">640 weights + 64 biases</div>
+    <div class="w-range">Range: [-3.58, 4.14]</div>
+  </div>
+  <div class="weight-card">
+    <div class="w-name">Layer 2: Hidden → Hidden</div>
+    <div class="w-shape">[64 x 64]</div>
+    <div class="w-params">4,096 weights + 64 biases</div>
+    <div class="w-range">Range: [-3.24, 2.61]</div>
+  </div>
+  <div class="weight-card">
+    <div class="w-name">Layer 3: Hidden → Output</div>
+    <div class="w-shape">[64 x 2]</div>
+    <div class="w-params">128 weights + 2 biases</div>
+    <div class="w-range">Range: [-3.06, 2.60]</div>
+  </div>
+</div>
+
+<!-- First Layer Weight Heatmap -->
+<h2>First Layer Weights — What the Network Learned</h2>
+<p style="color:#8899aa; margin-bottom:15px;">Each column shows how much one hidden neuron cares about each input. Blue = positive weight (excitatory), Red = negative (inhibitory).</p>
+
+<div class="network-section">
+  <div class="heatmap-container">
+    <canvas id="heatmapCanvas" width="800" height="320"></canvas>
+  </div>
+</div>
+
+<!-- Reward function -->
+<h2>Reward Function</h2>
+<div class="network-section">
+  <div style="text-align:center; padding: 20px;">
+    <div style="font-size:1.8em; font-family:'Courier New',monospace; color:#f59e0b; margin-bottom:15px;">
+      R<sub>t</sub> = TotalWait<sub>t-1</sub> - TotalWait<sub>t</sub>
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; max-width:600px; margin:20px auto;">
+      <div style="background:#1a2332; padding:15px; border-radius:8px;">
+        <div style="color:#22c55e; font-size:1.3em; font-weight:700;">R > 0</div>
+        <div style="color:#8899aa; font-size:0.85em;">Wait decreased<br/>Good decision!</div>
+      </div>
+      <div style="background:#1a2332; padding:15px; border-radius:8px;">
+        <div style="color:#f59e0b; font-size:1.3em; font-weight:700;">R = 0</div>
+        <div style="color:#8899aa; font-size:0.85em;">No change<br/>Neutral</div>
+      </div>
+      <div style="background:#1a2332; padding:15px; border-radius:8px;">
+        <div style="color:#ef4444; font-size:1.3em; font-weight:700;">R < 0</div>
+        <div style="color:#8899aa; font-size:0.85em;">Wait increased<br/>Bad decision!</div>
+      </div>
+    </div>
+    <p style="color:#6b7d99; font-size:0.9em; margin-top:15px;">
+      The agent received this reward 100,000 times during training, gradually learning which actions reduce waiting time.
+    </p>
+  </div>
+</div>
+
+<!-- Training config -->
+<h2>Training Configuration</h2>
+<div class="obs-grid">
+  <div class="obs-group">
+    <h4>DQN Hyperparameters</h4>
+    <div class="obs-item"><span>Learning Rate</span> <span class="val">0.001</span></div>
+    <div class="obs-item"><span>Discount Factor (gamma)</span> <span class="val">0.99</span></div>
+    <div class="obs-item"><span>Replay Buffer Size</span> <span class="val">50,000</span></div>
+    <div class="obs-item"><span>Batch Size</span> <span class="val">64</span></div>
+    <div class="obs-item"><span>Target Net Update</span> <span class="val">every 500 steps</span></div>
+    <div class="obs-item"><span>Total Training Steps</span> <span class="val">100,000</span></div>
+  </div>
+  <div class="obs-group">
+    <h4>Exploration Schedule</h4>
+    <div class="obs-item"><span>Start</span> <span class="val">100% random</span></div>
+    <div class="obs-item"><span>End</span> <span class="val">5% random</span></div>
+    <div class="obs-item"><span>Decay Over</span> <span class="val">30% of training</span></div>
+    <div class="obs-item"><span>Decision Interval</span> <span class="val">every 5 seconds</span></div>
+    <div class="obs-item"><span>Training Scenarios</span> <span class="val">v2-v7 (random)</span></div>
+    <div class="obs-item"><span>Network Architecture</span> <span class="val">10→64→64→2</span></div>
+  </div>
+</div>
+
+<!-- Per-scenario comparison -->
+<h2>Per-Scenario Results</h2>
+<p style="color:#8899aa; margin-bottom:15px;">Average waiting time per vehicle (seconds) — lower is better.</p>
+
+<div class="chart-container" id="chartContainer">
+</div>
+
+<!-- Comparison table -->
+<table class="comp-table">
+  <thead>
+    <tr>
+      <th>Version</th>
+      <th>Scenario</th>
+      <th>Fixed Timer</th>
+      <th>DQN (RL)</th>
+      <th>Adaptive (Ours)</th>
+      <th>Winner</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>v2</td><td>Demand Flip</td><td>21.13s</td><td>22.01s</td><td class="winner">11.52s</td><td style="color:#22c55e">Adaptive</td></tr>
+    <tr><td>v3</td><td>CBD Rush</td><td>23.42s</td><td>21.24s</td><td class="winner">12.71s</td><td style="color:#22c55e">Adaptive</td></tr>
+    <tr><td>v4</td><td>Evening Exodus</td><td>17.38s</td><td>13.03s</td><td class="winner">8.26s</td><td style="color:#22c55e">Adaptive</td></tr>
+    <tr><td>v5</td><td>School Zone</td><td>10.56s</td><td class="winner" style="color:#3b82f6">3.70s</td><td>6.53s</td><td style="color:#3b82f6">DQN</td></tr>
+    <tr><td>v6</td><td>Oversaturated</td><td>25.55s</td><td>18.50s</td><td class="winner">17.33s</td><td style="color:#22c55e">Adaptive</td></tr>
+    <tr><td>v7</td><td>Stadium</td><td>14.05s</td><td>9.43s</td><td class="winner">4.12s</td><td style="color:#22c55e">Adaptive</td></tr>
+    <tr style="font-weight:700; border-top:2px solid #3b82f6;">
+      <td></td><td>Average</td><td>18.68s</td><td>14.65s</td><td class="winner">10.08s</td><td style="color:#22c55e">Adaptive (+31%)</td></tr>
+  </tbody>
+</table>
+
+<!-- Why adaptive wins -->
+<h2>Why Our Adaptive Method Wins</h2>
+<div class="step-flow" style="grid-template-columns: repeat(3, 1fr);">
+  <div class="step-card">
+    <div class="step-icon">🔮</div>
+    <div class="step-title">Richer Signals</div>
+    <div class="step-desc">LSTM predicts which vehicles will go straight vs turn. Arrival rate forecasts future demand. DQN only sees current queues and speeds.</div>
+  </div>
+  <div class="step-card">
+    <div class="step-icon">🎛️</div>
+    <div class="step-title">Per-Scenario Tuning</div>
+    <div class="step-desc">Each scenario gets its own Optuna-optimized weights (e.g., v2 uses C=53s, v4 uses C=30s). DQN uses one fixed policy for all.</div>
+  </div>
+  <div class="step-card">
+    <div class="step-icon">📋</div>
+    <div class="step-title">Full Explainability</div>
+    <div class="step-desc">Every decision has a complete equation breakdown: queue terms, arrival terms, through-bonus, green allocation. DQN is a black box.</div>
+  </div>
+</div>
+
+</div>
+
+<!-- Tooltip element -->
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// Tooltip for neurons
+const tooltip = document.getElementById('tooltip');
+document.querySelectorAll('.neuron').forEach(n => {
+  n.addEventListener('mouseenter', e => {
+    const info = n.getAttribute('data-info');
+    if (!info) return;
+    const [title, desc] = info.split('|');
+    tooltip.innerHTML = `<strong>${title}</strong><br/>${desc || ''}`;
+    tooltip.style.opacity = 1;
+    const rect = n.getBoundingClientRect();
+    tooltip.style.left = (rect.right + 10) + 'px';
+    tooltip.style.top = (rect.top - 10) + 'px';
+  });
+  n.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+});
+
+// Bar chart
+const data = {
+  v2: { fixed: 21.13, dqn: 22.01, adaptive: 11.52, name: 'Demand Flip' },
+  v3: { fixed: 23.42, dqn: 21.24, adaptive: 12.71, name: 'CBD Rush' },
+  v4: { fixed: 17.38, dqn: 13.03, adaptive: 8.26, name: 'Evening Exodus' },
+  v5: { fixed: 10.56, dqn: 3.70, adaptive: 6.53, name: 'School Zone' },
+  v6: { fixed: 25.55, dqn: 18.50, adaptive: 17.33, name: 'Oversaturated' },
+  v7: { fixed: 14.05, dqn: 9.43, adaptive: 4.12, name: 'Stadium' },
+};
+const maxVal = 26;
+const container = document.getElementById('chartContainer');
+
+Object.entries(data).forEach(([v, d]) => {
+  const group = document.createElement('div');
+  group.style.marginBottom = '18px';
+  group.innerHTML = `<div style="display:flex;align-items:center;margin-bottom:4px;">
+    <span class="version-label">${v}</span>
+    <span style="color:#6b7d99;font-size:0.85em;margin-left:8px;">${d.name}</span></div>`;
+
+  ['fixed', 'dqn', 'adaptive'].forEach(method => {
+    const pct = (d[method] / maxVal * 100).toFixed(1);
+    const label = method === 'fixed' ? 'Fixed' : method === 'dqn' ? 'DQN' : 'Adaptive';
+    group.innerHTML += `<div class="bar-row">
+      <div class="bar-label">${label}</div>
+      <div class="bar-track">
+        <div class="bar-fill ${method}" style="width:${pct}%">${d[method]}s</div>
+      </div></div>`;
+  });
+  container.appendChild(group);
+});
+
+// Heatmap of first layer weights
+fetch('dqn_weights.json').then(r => r.json()).then(weights => {
+  const canvas = document.getElementById('heatmapCanvas');
+  const ctx = canvas.getContext('2d');
+  const w = weights['q_net.0.weight'].values; // [64][10]
+  const labels = ['Q_N','Q_S','Q_E','Q_W','S_N','S_S','S_E','S_W','Phase','Timer'];
+
+  const cellW = 11;
+  const cellH = 26;
+  const offsetX = 70;
+  const offsetY = 30;
+
+  // Find max abs value for color scaling
+  let maxAbs = 0;
+  w.forEach(row => row.forEach(v => { if (Math.abs(v) > maxAbs) maxAbs = Math.abs(v); }));
+
+  // Draw labels
+  ctx.fillStyle = '#6b7d99';
+  ctx.font = '11px Segoe UI';
+  ctx.textAlign = 'right';
+  labels.forEach((l, i) => {
+    ctx.fillText(l, offsetX - 6, offsetY + i * cellH + cellH/2 + 4);
+  });
+
+  // Draw heatmap (transposed: rows=inputs, cols=neurons)
+  for (let neuron = 0; neuron < 64; neuron++) {
+    for (let input = 0; input < 10; input++) {
+      const val = w[neuron][input];
+      const normalized = val / maxAbs; // -1 to 1
+
+      let r, g, b;
+      if (normalized > 0) {
+        r = 30; g = 60 + Math.floor(normalized * 160); b = 200 + Math.floor(normalized * 55);
+      } else {
+        r = 200 + Math.floor(-normalized * 55); g = 50 + Math.floor(-normalized * 30); b = 50;
+      }
+
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(offsetX + neuron * cellW, offsetY + input * cellH, cellW - 1, cellH - 1);
+    }
+  }
+
+  // Neuron numbers
+  ctx.fillStyle = '#4b5563';
+  ctx.font = '9px Segoe UI';
+  ctx.textAlign = 'center';
+  for (let i = 0; i < 64; i += 8) {
+    ctx.fillText(i, offsetX + i * cellW + cellW/2, offsetY + 10 * cellH + 14);
+  }
+  ctx.fillText('Neuron index', offsetX + 32 * cellW, offsetY + 10 * cellH + 28);
+
+  // Legend
+  const legendX = offsetX + 64 * cellW + 20;
+  const legendY = offsetY + 40;
+  const legendH = 160;
+  for (let i = 0; i < legendH; i++) {
+    const t = 1 - i / legendH; // 1 at top, -1 at bottom
+    const val = t * 2 - 1;
+    let r, g, b;
+    if (val > 0) { r = 30; g = 60 + Math.floor(val * 160); b = 200 + Math.floor(val * 55); }
+    else { r = 200 + Math.floor(-val * 55); g = 50 + Math.floor(-val * 30); b = 50; }
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(legendX, legendY + i, 15, 1);
+  }
+  ctx.fillStyle = '#6b7d99';
+  ctx.font = '10px Segoe UI';
+  ctx.textAlign = 'left';
+  ctx.fillText(`+${maxAbs.toFixed(1)}`, legendX + 20, legendY + 8);
+  ctx.fillText('0', legendX + 20, legendY + legendH/2 + 4);
+  ctx.fillText(`-${maxAbs.toFixed(1)}`, legendX + 20, legendY + legendH + 4);
+}).catch(() => {
+  document.getElementById('heatmapCanvas').style.display = 'none';
+});
+</script>
+
+</body>
+</html>

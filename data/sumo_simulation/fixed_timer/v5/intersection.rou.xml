@@ -10,7 +10,7 @@
     <!-- Turn ratio: 55% through, 18% left, 27% right (residential)  -->
     <!-- ============================================================ -->
 
-    <vType id="car"   length="5.0"  width="2.0" minGap="2.5" maxSpeed="8.33" accel="2.0" decel="4.5" sigma="0.5"
+    <vType id="car" imgFile="/Users/ankitdevkota/Desktop/Old desktop/Research_zhou/data/sumo_simulation/car_sprites/Topdown_vehicle_sprites_pack/Audi.png"   length="5.0"  width="2.0" minGap="2.5" maxSpeed="8.33" accel="2.0" decel="4.5" sigma="0.5"
            guiShape="passenger" color="0.8,0.1,0.1"/>
     <vType id="suv"   length="5.5"  width="2.2" minGap="2.5" maxSpeed="8.33" accel="1.8" decel="4.0" sigma="0.5"
            guiShape="passenger/sedan" color="0.3,0.3,0.7"/>

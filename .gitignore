@@ -71,3 +71,11 @@ gitingest.md
 data/sumo_simulation/adaptive_timer/v8
 data/sumo_simulation/fixed_timer/v8
 docs/
+
+# Heavy datasets and training runs (generated, not tracked)
+data/sumo_yolo_dataset/
+data/sumo_yolo_tiled/
+runs/
+src/dqn/vision_demo/
+src/dqn/dqn_timer/
+src/dqn/dqn_traffic_model/

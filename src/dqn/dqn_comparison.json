@@ -1,0 +1,30 @@
+{
+  "mode": "per_version",
+  "per_version": {
+    "v5": {
+      "fixed": 10.56,
+      "dqn": 4.79,
+      "adaptive": 6.53
+    },
+    "v6": {
+      "fixed": 31.9,
+      "dqn": 20.41,
+      "adaptive": 18.25
+    },
+    "v7": {
+      "fixed": 14.05,
+      "dqn": 10.68,
+      "adaptive": 4.12
+    }
+  },
+  "averages": {
+    "fixed": 18.84,
+    "dqn": 11.96,
+    "adaptive": 9.63
+  },
+  "improvements": {
+    "dqn_vs_fixed_pct": 36.51,
+    "adaptive_vs_fixed_pct": 48.86,
+    "adaptive_vs_dqn_pct": 19.45
+  }
+}

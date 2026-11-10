@@ -8,11 +8,11 @@
     <!-- ============================================================ -->
 
     <!-- Vehicle types -->
-    <vType id="car"   length="5.0"  width="2.0" minGap="2.5" maxSpeed="8.33"  accel="2.0" decel="4.5" sigma="0.5" probability="0.70"
+    <vType id="car" imgFile="/Users/ankitdevkota/Desktop/Old desktop/Research_zhou/data/sumo_simulation/car_sprites/Topdown_vehicle_sprites_pack/Audi.png"   length="5.0"  width="2.0" minGap="2.5" maxSpeed="8.33"  accel="2.0" decel="4.5" sigma="0.5" probability="0.70"
            guiShape="passenger" color="0.8,0.1,0.1"/>
-    <vType id="van"   length="5.75" width="2.2" minGap="2.5" maxSpeed="7.50"  accel="1.8" decel="4.0" sigma="0.5" probability="0.15"
+    <vType id="van" imgFile="/Users/ankitdevkota/Desktop/Old desktop/Research_zhou/data/sumo_simulation/car_sprites/Topdown_vehicle_sprites_pack/Mini_van.png"   length="5.75" width="2.2" minGap="2.5" maxSpeed="7.50"  accel="1.8" decel="4.0" sigma="0.5" probability="0.15"
            guiShape="delivery" color="0.9,0.8,0.3"/>
-    <vType id="truck" length="10.0" width="2.5" minGap="3.0" maxSpeed="6.94"  accel="1.2" decel="3.5" sigma="0.5" probability="0.10"
+    <vType id="truck" imgFile="/Users/ankitdevkota/Desktop/Old desktop/Research_zhou/data/sumo_simulation/car_sprites/Topdown_vehicle_sprites_pack/truck.png" length="10.0" width="2.5" minGap="3.0" maxSpeed="6.94"  accel="1.2" decel="3.5" sigma="0.5" probability="0.10"
            guiShape="truck" color="0.6,0.4,0.2"/>
     <vType id="bus"   length="12.0" width="2.5" minGap="3.0" maxSpeed="6.94"  accel="1.2" decel="3.5" sigma="0.5" probability="0.05"
            guiShape="bus" color="0.2,0.6,0.8"/>

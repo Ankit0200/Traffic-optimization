@@ -1,0 +1,3809 @@
+{
+  "snapshots": [
+    {
+      "timestep": 5000,
+      "episodes_completed": 116,
+      "avg_reward_last10": -146.78,
+      "avg_length_last10": 42.5,
+      "exploration_rate": 0.4723
+    },
+    {
+      "timestep": 10000,
+      "episodes_completed": 233,
+      "avg_reward_last10": -142.17,
+      "avg_length_last10": 42.7,
+      "exploration_rate": 0.05
+    },
+    {
+      "timestep": 15000,
+      "episodes_completed": 325,
+      "avg_reward_last10": -277.66,
+      "avg_length_last10": 66.4,
+      "exploration_rate": 0.05
+    },
+    {
+      "timestep": 20000,
+      "episodes_completed": 408,
+      "avg_reward_last10": -228.89,
+      "avg_length_last10": 48.5,
+      "exploration_rate": 0.05
+    },
+    {
+      "timestep": 25000,
+      "episodes_completed": 511,
+      "avg_reward_last10": -182.39,
+      "avg_length_last10": 43.1,
+      "exploration_rate": 0.05
+    },
+    {
+      "timestep": 30000,
+      "episodes_completed": 626,
+      "avg_reward_last10": -153.07,
+      "avg_length_last10": 42.7,
+      "exploration_rate": 0.05
+    }
+  ],
+  "episodes": [
+    {
+      "episode": 0,
+      "version": "unknown",
+      "total_reward": -176.49,
+      "length_steps": 42
+    },
+    {
+      "episode": 1,
+      "version": "unknown",
+      "total_reward": -286.92,
+      "length_steps": 46
+    },
+    {
+      "episode": 2,
+      "version": "unknown",
+      "total_reward": -179.07,
+      "length_steps": 42
+    },
+    {
+      "episode": 3,
+      "version": "unknown",
+      "total_reward": -252.03,
+      "length_steps": 48
+    },
+    {
+      "episode": 4,
+      "version": "unknown",
+      "total_reward": -139.36,
+      "length_steps": 41
+    },
+    {
+      "episode": 5,
+      "version": "unknown",
+      "total_reward": -181.89,
+      "length_steps": 43
+    },
+    {
+      "episode": 6,
+      "version": "unknown",
+      "total_reward": -292.59,
+      "length_steps": 44
+    },
+    {
+      "episode": 7,
+      "version": "unknown",
+      "total_reward": -144.08,
+      "length_steps": 46
+    },
+    {
+      "episode": 8,
+      "version": "unknown",
+      "total_reward": -146.51,
+      "length_steps": 41
+    },
+    {
+      "episode": 9,
+      "version": "unknown",
+      "total_reward": -184.31,
+      "length_steps": 42
+    },
+    {
+      "episode": 10,
+      "version": "unknown",
+      "total_reward": -186.42,
+      "length_steps": 43
+    },
+    {
+      "episode": 11,
+      "version": "unknown",
+      "total_reward": -174.38,
+      "length_steps": 42
+    },
+    {
+      "episode": 12,
+      "version": "unknown",
+      "total_reward": -287.5,
+      "length_steps": 46
+    },
+    {
+      "episode": 13,
+      "version": "unknown",
+      "total_reward": -176.87,
+      "length_steps": 44
+    },
+    {
+      "episode": 14,
+      "version": "unknown",
+      "total_reward": -138.76,
+      "length_steps": 41
+    },
+    {
+      "episode": 15,
+      "version": "unknown",
+      "total_reward": -193.87,
+      "length_steps": 42
+    },
+    {
+      "episode": 16,
+      "version": "unknown",
+      "total_reward": -121.36,
+      "length_steps": 42
+    },
+    {
+      "episode": 17,
+      "version": "unknown",
+      "total_reward": -184.63,
+      "length_steps": 40
+    },
+    {
+      "episode": 18,
+      "version": "unknown",
+      "total_reward": -174.54,
+      "length_steps": 42
+    },
+    {
+      "episode": 19,
+      "version": "unknown",
+      "total_reward": -320.7,
+      "length_steps": 51
+    },
+    {
+      "episode": 20,
+      "version": "unknown",
+      "total_reward": -154.1,
+      "length_steps": 42
+    },
+    {
+      "episode": 21,
+      "version": "unknown",
+      "total_reward": -93.01,
+      "length_steps": 39
+    },
+    {
+      "episode": 22,
+      "version": "unknown",
+      "total_reward": -204.5,
+      "length_steps": 43
+    },
+    {
+      "episode": 23,
+      "version": "unknown",
+      "total_reward": -172.3,
+      "length_steps": 41
+    },
+    {
+      "episode": 24,
+      "version": "unknown",
+      "total_reward": -258.23,
+      "length_steps": 46
+    },
+    {
+      "episode": 25,
+      "version": "unknown",
+      "total_reward": -138.64,
+      "length_steps": 48
+    },
+    {
+      "episode": 26,
+      "version": "unknown",
+      "total_reward": -158.56,
+      "length_steps": 44
+    },
+    {
+      "episode": 27,
+      "version": "unknown",
+      "total_reward": -158.87,
+      "length_steps": 41
+    },
+    {
+      "episode": 28,
+      "version": "unknown",
+      "total_reward": -139.3,
+      "length_steps": 41
+    },
+    {
+      "episode": 29,
+      "version": "unknown",
+      "total_reward": -167.54,
+      "length_steps": 41
+    },
+    {
+      "episode": 30,
+      "version": "unknown",
+      "total_reward": -125.54,
+      "length_steps": 43
+    },
+    {
+      "episode": 31,
+      "version": "unknown",
+      "total_reward": -229.69,
+      "length_steps": 42
+    },
+    {
+      "episode": 32,
+      "version": "unknown",
+      "total_reward": -209.03,
+      "length_steps": 43
+    },
+    {
+      "episode": 33,
+      "version": "unknown",
+      "total_reward": -160.06,
+      "length_steps": 41
+    },
+    {
+      "episode": 34,
+      "version": "unknown",
+      "total_reward": -162.6,
+      "length_steps": 46
+    },
+    {
+      "episode": 35,
+      "version": "unknown",
+      "total_reward": -314.41,
+      "length_steps": 44
+    },
+    {
+      "episode": 36,
+      "version": "unknown",
+      "total_reward": -134.44,
+      "length_steps": 45
+    },
+    {
+      "episode": 37,
+      "version": "unknown",
+      "total_reward": -173.11,
+      "length_steps": 43
+    },
+    {
+      "episode": 38,
+      "version": "unknown",
+      "total_reward": -115.1,
+      "length_steps": 40
+    },
+    {
+      "episode": 39,
+      "version": "unknown",
+      "total_reward": -268.37,
+      "length_steps": 49
+    },
+    {
+      "episode": 40,
+      "version": "unknown",
+      "total_reward": -176.3,
+      "length_steps": 42
+    },
+    {
+      "episode": 41,
+      "version": "unknown",
+      "total_reward": -170.1,
+      "length_steps": 41
+    },
+    {
+      "episode": 42,
+      "version": "unknown",
+      "total_reward": -156.4,
+      "length_steps": 44
+    },
+    {
+      "episode": 43,
+      "version": "unknown",
+      "total_reward": -145.77,
+      "length_steps": 41
+    },
+    {
+      "episode": 44,
+      "version": "unknown",
+      "total_reward": -282.85,
+      "length_steps": 44
+    },
+    {
+      "episode": 45,
+      "version": "unknown",
+      "total_reward": -179.07,
+      "length_steps": 43
+    },
+    {
+      "episode": 46,
+      "version": "unknown",
+      "total_reward": -110.53,
+      "length_steps": 41
+    },
+    {
+      "episode": 47,
+      "version": "unknown",
+      "total_reward": -149.84,
+      "length_steps": 42
+    },
+    {
+      "episode": 48,
+      "version": "unknown",
+      "total_reward": -130.91,
+      "length_steps": 41
+    },
+    {
+      "episode": 49,
+      "version": "unknown",
+      "total_reward": -174.93,
+      "length_steps": 40
+    },
+    {
+      "episode": 50,
+      "version": "unknown",
+      "total_reward": -165.35,
+      "length_steps": 44
+    },
+    {
+      "episode": 51,
+      "version": "unknown",
+      "total_reward": -219.76,
+      "length_steps": 43
+    },
+    {
+      "episode": 52,
+      "version": "unknown",
+      "total_reward": -138.96,
+      "length_steps": 39
+    },
+    {
+      "episode": 53,
+      "version": "unknown",
+      "total_reward": -148.76,
+      "length_steps": 42
+    },
+    {
+      "episode": 54,
+      "version": "unknown",
+      "total_reward": -165.97,
+      "length_steps": 45
+    },
+    {
+      "episode": 55,
+      "version": "unknown",
+      "total_reward": -137.02,
+      "length_steps": 43
+    },
+    {
+      "episode": 56,
+      "version": "unknown",
+      "total_reward": -97.74,
+      "length_steps": 40
+    },
+    {
+      "episode": 57,
+      "version": "unknown",
+      "total_reward": -194.34,
+      "length_steps": 43
+    },
+    {
+      "episode": 58,
+      "version": "unknown",
+      "total_reward": -183.54,
+      "length_steps": 45
+    },
+    {
+      "episode": 59,
+      "version": "unknown",
+      "total_reward": -174.84,
+      "length_steps": 43
+    },
+    {
+      "episode": 60,
+      "version": "unknown",
+      "total_reward": -237.37,
+      "length_steps": 48
+    },
+    {
+      "episode": 61,
+      "version": "unknown",
+      "total_reward": -155.09,
+      "length_steps": 42
+    },
+    {
+      "episode": 62,
+      "version": "unknown",
+      "total_reward": -158.48,
+      "length_steps": 42
+    },
+    {
+      "episode": 63,
+      "version": "unknown",
+      "total_reward": -143.01,
+      "length_steps": 40
+    },
+    {
+      "episode": 64,
+      "version": "unknown",
+      "total_reward": -181.75,
+      "length_steps": 47
+    },
+    {
+      "episode": 65,
+      "version": "unknown",
+      "total_reward": -201.21,
+      "length_steps": 47
+    },
+    {
+      "episode": 66,
+      "version": "unknown",
+      "total_reward": -165.89,
+      "length_steps": 40
+    },
+    {
+      "episode": 67,
+      "version": "unknown",
+      "total_reward": -170.19,
+      "length_steps": 45
+    },
+    {
+      "episode": 68,
+      "version": "unknown",
+      "total_reward": -139.02,
+      "length_steps": 41
+    },
+    {
+      "episode": 69,
+      "version": "unknown",
+      "total_reward": -150.18,
+      "length_steps": 41
+    },
+    {
+      "episode": 70,
+      "version": "unknown",
+      "total_reward": -137.64,
+      "length_steps": 41
+    },
+    {
+      "episode": 71,
+      "version": "unknown",
+      "total_reward": -133.06,
+      "length_steps": 42
+    },
+    {
+      "episode": 72,
+      "version": "unknown",
+      "total_reward": -161.88,
+      "length_steps": 45
+    },
+    {
+      "episode": 73,
+      "version": "unknown",
+      "total_reward": -152.9,
+      "length_steps": 41
+    },
+    {
+      "episode": 74,
+      "version": "unknown",
+      "total_reward": -261.46,
+      "length_steps": 45
+    },
+    {
+      "episode": 75,
+      "version": "unknown",
+      "total_reward": -207.51,
+      "length_steps": 45
+    },
+    {
+      "episode": 76,
+      "version": "unknown",
+      "total_reward": -156.67,
+      "length_steps": 43
+    },
+    {
+      "episode": 77,
+      "version": "unknown",
+      "total_reward": -192.3,
+      "length_steps": 43
+    },
+    {
+      "episode": 78,
+      "version": "unknown",
+      "total_reward": -99.48,
+      "length_steps": 39
+    },
+    {
+      "episode": 79,
+      "version": "unknown",
+      "total_reward": -196.93,
+      "length_steps": 49
+    },
+    {
+      "episode": 80,
+      "version": "unknown",
+      "total_reward": -167.5,
+      "length_steps": 43
+    },
+    {
+      "episode": 81,
+      "version": "unknown",
+      "total_reward": -163.46,
+      "length_steps": 41
+    },
+    {
+      "episode": 82,
+      "version": "unknown",
+      "total_reward": -143.19,
+      "length_steps": 44
+    },
+    {
+      "episode": 83,
+      "version": "unknown",
+      "total_reward": -190.05,
+      "length_steps": 45
+    },
+    {
+      "episode": 84,
+      "version": "unknown",
+      "total_reward": -219.24,
+      "length_steps": 45
+    },
+    {
+      "episode": 85,
+      "version": "unknown",
+      "total_reward": -116.46,
+      "length_steps": 40
+    },
+    {
+      "episode": 86,
+      "version": "unknown",
+      "total_reward": -111.95,
+      "length_steps": 40
+    },
+    {
+      "episode": 87,
+      "version": "unknown",
+      "total_reward": -104.16,
+      "length_steps": 41
+    },
+    {
+      "episode": 88,
+      "version": "unknown",
+      "total_reward": -168.51,
+      "length_steps": 44
+    },
+    {
+      "episode": 89,
+      "version": "unknown",
+      "total_reward": -164.68,
+      "length_steps": 43
+    },
+    {
+      "episode": 90,
+      "version": "unknown",
+      "total_reward": -155.91,
+      "length_steps": 45
+    },
+    {
+      "episode": 91,
+      "version": "unknown",
+      "total_reward": -180.01,
+      "length_steps": 41
+    },
+    {
+      "episode": 92,
+      "version": "unknown",
+      "total_reward": -174.48,
+      "length_steps": 42
+    },
+    {
+      "episode": 93,
+      "version": "unknown",
+      "total_reward": -144.96,
+      "length_steps": 43
+    },
+    {
+      "episode": 94,
+      "version": "unknown",
+      "total_reward": -190.77,
+      "length_steps": 41
+    },
+    {
+      "episode": 95,
+      "version": "unknown",
+      "total_reward": -229.79,
+      "length_steps": 43
+    },
+    {
+      "episode": 96,
+      "version": "unknown",
+      "total_reward": -317.16,
+      "length_steps": 47
+    },
+    {
+      "episode": 97,
+      "version": "unknown",
+      "total_reward": -110.8,
+      "length_steps": 43
+    },
+    {
+      "episode": 98,
+      "version": "unknown",
+      "total_reward": -174.88,
+      "length_steps": 45
+    },
+    {
+      "episode": 99,
+      "version": "unknown",
+      "total_reward": -132.95,
+      "length_steps": 42
+    },
+    {
+      "episode": 100,
+      "version": "unknown",
+      "total_reward": -237.02,
+      "length_steps": 47
+    },
+    {
+      "episode": 101,
+      "version": "unknown",
+      "total_reward": -161.3,
+      "length_steps": 44
+    },
+    {
+      "episode": 102,
+      "version": "unknown",
+      "total_reward": -151.26,
+      "length_steps": 41
+    },
+    {
+      "episode": 103,
+      "version": "unknown",
+      "total_reward": -231.97,
+      "length_steps": 44
+    },
+    {
+      "episode": 104,
+      "version": "unknown",
+      "total_reward": -145.38,
+      "length_steps": 42
+    },
+    {
+      "episode": 105,
+      "version": "unknown",
+      "total_reward": -197.83,
+      "length_steps": 45
+    },
+    {
+      "episode": 106,
+      "version": "unknown",
+      "total_reward": -130.59,
+      "length_steps": 42
+    },
+    {
+      "episode": 107,
+      "version": "unknown",
+      "total_reward": -137.5,
+      "length_steps": 42
+    },
+    {
+      "episode": 108,
+      "version": "unknown",
+      "total_reward": -161.67,
+      "length_steps": 42
+    },
+    {
+      "episode": 109,
+      "version": "unknown",
+      "total_reward": -148.04,
+      "length_steps": 41
+    },
+    {
+      "episode": 110,
+      "version": "unknown",
+      "total_reward": -173.57,
+      "length_steps": 43
+    },
+    {
+      "episode": 111,
+      "version": "unknown",
+      "total_reward": -150.6,
+      "length_steps": 43
+    },
+    {
+      "episode": 112,
+      "version": "unknown",
+      "total_reward": -138.0,
+      "length_steps": 43
+    },
+    {
+      "episode": 113,
+      "version": "unknown",
+      "total_reward": -160.74,
+      "length_steps": 44
+    },
+    {
+      "episode": 114,
+      "version": "unknown",
+      "total_reward": -143.94,
+      "length_steps": 41
+    },
+    {
+      "episode": 115,
+      "version": "unknown",
+      "total_reward": -123.12,
+      "length_steps": 44
+    },
+    {
+      "episode": 116,
+      "version": "unknown",
+      "total_reward": -139.28,
+      "length_steps": 41
+    },
+    {
+      "episode": 117,
+      "version": "unknown",
+      "total_reward": -158.12,
+      "length_steps": 43
+    },
+    {
+      "episode": 118,
+      "version": "unknown",
+      "total_reward": -167.43,
+      "length_steps": 43
+    },
+    {
+      "episode": 119,
+      "version": "unknown",
+      "total_reward": -147.67,
+      "length_steps": 43
+    },
+    {
+      "episode": 120,
+      "version": "unknown",
+      "total_reward": -166.58,
+      "length_steps": 45
+    },
+    {
+      "episode": 121,
+      "version": "unknown",
+      "total_reward": -155.78,
+      "length_steps": 44
+    },
+    {
+      "episode": 122,
+      "version": "unknown",
+      "total_reward": -155.23,
+      "length_steps": 43
+    },
+    {
+      "episode": 123,
+      "version": "unknown",
+      "total_reward": -163.61,
+      "length_steps": 41
+    },
+    {
+      "episode": 124,
+      "version": "unknown",
+      "total_reward": -192.34,
+      "length_steps": 46
+    },
+    {
+      "episode": 125,
+      "version": "unknown",
+      "total_reward": -156.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 126,
+      "version": "unknown",
+      "total_reward": -137.64,
+      "length_steps": 41
+    },
+    {
+      "episode": 127,
+      "version": "unknown",
+      "total_reward": -155.63,
+      "length_steps": 44
+    },
+    {
+      "episode": 128,
+      "version": "unknown",
+      "total_reward": -178.38,
+      "length_steps": 41
+    },
+    {
+      "episode": 129,
+      "version": "unknown",
+      "total_reward": -153.89,
+      "length_steps": 43
+    },
+    {
+      "episode": 130,
+      "version": "unknown",
+      "total_reward": -169.87,
+      "length_steps": 43
+    },
+    {
+      "episode": 131,
+      "version": "unknown",
+      "total_reward": -163.57,
+      "length_steps": 41
+    },
+    {
+      "episode": 132,
+      "version": "unknown",
+      "total_reward": -148.16,
+      "length_steps": 44
+    },
+    {
+      "episode": 133,
+      "version": "unknown",
+      "total_reward": -150.79,
+      "length_steps": 42
+    },
+    {
+      "episode": 134,
+      "version": "unknown",
+      "total_reward": -146.9,
+      "length_steps": 44
+    },
+    {
+      "episode": 135,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 136,
+      "version": "unknown",
+      "total_reward": -162.98,
+      "length_steps": 41
+    },
+    {
+      "episode": 137,
+      "version": "unknown",
+      "total_reward": -173.48,
+      "length_steps": 40
+    },
+    {
+      "episode": 138,
+      "version": "unknown",
+      "total_reward": -150.33,
+      "length_steps": 40
+    },
+    {
+      "episode": 139,
+      "version": "unknown",
+      "total_reward": -179.82,
+      "length_steps": 40
+    },
+    {
+      "episode": 140,
+      "version": "unknown",
+      "total_reward": -150.24,
+      "length_steps": 41
+    },
+    {
+      "episode": 141,
+      "version": "unknown",
+      "total_reward": -177.77,
+      "length_steps": 41
+    },
+    {
+      "episode": 142,
+      "version": "unknown",
+      "total_reward": -142.51,
+      "length_steps": 42
+    },
+    {
+      "episode": 143,
+      "version": "unknown",
+      "total_reward": -164.8,
+      "length_steps": 41
+    },
+    {
+      "episode": 144,
+      "version": "unknown",
+      "total_reward": -181.32,
+      "length_steps": 42
+    },
+    {
+      "episode": 145,
+      "version": "unknown",
+      "total_reward": -148.04,
+      "length_steps": 41
+    },
+    {
+      "episode": 146,
+      "version": "unknown",
+      "total_reward": -155.31,
+      "length_steps": 40
+    },
+    {
+      "episode": 147,
+      "version": "unknown",
+      "total_reward": -146.43,
+      "length_steps": 43
+    },
+    {
+      "episode": 148,
+      "version": "unknown",
+      "total_reward": -148.91,
+      "length_steps": 41
+    },
+    {
+      "episode": 149,
+      "version": "unknown",
+      "total_reward": -147.3,
+      "length_steps": 42
+    },
+    {
+      "episode": 150,
+      "version": "unknown",
+      "total_reward": -155.52,
+      "length_steps": 42
+    },
+    {
+      "episode": 151,
+      "version": "unknown",
+      "total_reward": -150.67,
+      "length_steps": 41
+    },
+    {
+      "episode": 152,
+      "version": "unknown",
+      "total_reward": -158.73,
+      "length_steps": 43
+    },
+    {
+      "episode": 153,
+      "version": "unknown",
+      "total_reward": -149.94,
+      "length_steps": 41
+    },
+    {
+      "episode": 154,
+      "version": "unknown",
+      "total_reward": -144.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 155,
+      "version": "unknown",
+      "total_reward": -181.57,
+      "length_steps": 43
+    },
+    {
+      "episode": 156,
+      "version": "unknown",
+      "total_reward": -88.83,
+      "length_steps": 40
+    },
+    {
+      "episode": 157,
+      "version": "unknown",
+      "total_reward": -154.12,
+      "length_steps": 45
+    },
+    {
+      "episode": 158,
+      "version": "unknown",
+      "total_reward": -148.14,
+      "length_steps": 41
+    },
+    {
+      "episode": 159,
+      "version": "unknown",
+      "total_reward": -154.84,
+      "length_steps": 41
+    },
+    {
+      "episode": 160,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 161,
+      "version": "unknown",
+      "total_reward": -145.37,
+      "length_steps": 41
+    },
+    {
+      "episode": 162,
+      "version": "unknown",
+      "total_reward": -164.51,
+      "length_steps": 42
+    },
+    {
+      "episode": 163,
+      "version": "unknown",
+      "total_reward": -127.43,
+      "length_steps": 46
+    },
+    {
+      "episode": 164,
+      "version": "unknown",
+      "total_reward": -148.88,
+      "length_steps": 42
+    },
+    {
+      "episode": 165,
+      "version": "unknown",
+      "total_reward": -162.31,
+      "length_steps": 45
+    },
+    {
+      "episode": 166,
+      "version": "unknown",
+      "total_reward": -138.56,
+      "length_steps": 41
+    },
+    {
+      "episode": 167,
+      "version": "unknown",
+      "total_reward": -156.06,
+      "length_steps": 42
+    },
+    {
+      "episode": 168,
+      "version": "unknown",
+      "total_reward": -138.88,
+      "length_steps": 43
+    },
+    {
+      "episode": 169,
+      "version": "unknown",
+      "total_reward": -154.57,
+      "length_steps": 40
+    },
+    {
+      "episode": 170,
+      "version": "unknown",
+      "total_reward": -172.26,
+      "length_steps": 44
+    },
+    {
+      "episode": 171,
+      "version": "unknown",
+      "total_reward": -152.06,
+      "length_steps": 43
+    },
+    {
+      "episode": 172,
+      "version": "unknown",
+      "total_reward": -142.06,
+      "length_steps": 41
+    },
+    {
+      "episode": 173,
+      "version": "unknown",
+      "total_reward": -144.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 174,
+      "version": "unknown",
+      "total_reward": -89.72,
+      "length_steps": 41
+    },
+    {
+      "episode": 175,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 176,
+      "version": "unknown",
+      "total_reward": -145.83,
+      "length_steps": 43
+    },
+    {
+      "episode": 177,
+      "version": "unknown",
+      "total_reward": -156.75,
+      "length_steps": 41
+    },
+    {
+      "episode": 178,
+      "version": "unknown",
+      "total_reward": -161.12,
+      "length_steps": 43
+    },
+    {
+      "episode": 179,
+      "version": "unknown",
+      "total_reward": -156.06,
+      "length_steps": 42
+    },
+    {
+      "episode": 180,
+      "version": "unknown",
+      "total_reward": -155.45,
+      "length_steps": 42
+    },
+    {
+      "episode": 181,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 182,
+      "version": "unknown",
+      "total_reward": -154.81,
+      "length_steps": 44
+    },
+    {
+      "episode": 183,
+      "version": "unknown",
+      "total_reward": -122.88,
+      "length_steps": 41
+    },
+    {
+      "episode": 184,
+      "version": "unknown",
+      "total_reward": -155.48,
+      "length_steps": 42
+    },
+    {
+      "episode": 185,
+      "version": "unknown",
+      "total_reward": -148.14,
+      "length_steps": 41
+    },
+    {
+      "episode": 186,
+      "version": "unknown",
+      "total_reward": -97.41,
+      "length_steps": 40
+    },
+    {
+      "episode": 187,
+      "version": "unknown",
+      "total_reward": -108.31,
+      "length_steps": 41
+    },
+    {
+      "episode": 188,
+      "version": "unknown",
+      "total_reward": -148.14,
+      "length_steps": 41
+    },
+    {
+      "episode": 189,
+      "version": "unknown",
+      "total_reward": -166.7,
+      "length_steps": 41
+    },
+    {
+      "episode": 190,
+      "version": "unknown",
+      "total_reward": -153.89,
+      "length_steps": 43
+    },
+    {
+      "episode": 191,
+      "version": "unknown",
+      "total_reward": -153.89,
+      "length_steps": 43
+    },
+    {
+      "episode": 192,
+      "version": "unknown",
+      "total_reward": -183.59,
+      "length_steps": 57
+    },
+    {
+      "episode": 193,
+      "version": "unknown",
+      "total_reward": -127.85,
+      "length_steps": 42
+    },
+    {
+      "episode": 194,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 195,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 196,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 197,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 198,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 199,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 200,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 201,
+      "version": "unknown",
+      "total_reward": -156.03,
+      "length_steps": 46
+    },
+    {
+      "episode": 202,
+      "version": "unknown",
+      "total_reward": -94.21,
+      "length_steps": 37
+    },
+    {
+      "episode": 203,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 204,
+      "version": "unknown",
+      "total_reward": -160.26,
+      "length_steps": 42
+    },
+    {
+      "episode": 205,
+      "version": "unknown",
+      "total_reward": -164.93,
+      "length_steps": 41
+    },
+    {
+      "episode": 206,
+      "version": "unknown",
+      "total_reward": -153.89,
+      "length_steps": 43
+    },
+    {
+      "episode": 207,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 208,
+      "version": "unknown",
+      "total_reward": -153.52,
+      "length_steps": 44
+    },
+    {
+      "episode": 209,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 210,
+      "version": "unknown",
+      "total_reward": -160.26,
+      "length_steps": 43
+    },
+    {
+      "episode": 211,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 212,
+      "version": "unknown",
+      "total_reward": -144.18,
+      "length_steps": 42
+    },
+    {
+      "episode": 213,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 214,
+      "version": "unknown",
+      "total_reward": -137.5,
+      "length_steps": 42
+    },
+    {
+      "episode": 215,
+      "version": "unknown",
+      "total_reward": -154.93,
+      "length_steps": 66
+    },
+    {
+      "episode": 216,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 217,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 218,
+      "version": "unknown",
+      "total_reward": -133.37,
+      "length_steps": 43
+    },
+    {
+      "episode": 219,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 220,
+      "version": "unknown",
+      "total_reward": -148.52,
+      "length_steps": 60
+    },
+    {
+      "episode": 221,
+      "version": "unknown",
+      "total_reward": -154.35,
+      "length_steps": 54
+    },
+    {
+      "episode": 222,
+      "version": "unknown",
+      "total_reward": -144.18,
+      "length_steps": 42
+    },
+    {
+      "episode": 223,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 224,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 225,
+      "version": "unknown",
+      "total_reward": -148.18,
+      "length_steps": 42
+    },
+    {
+      "episode": 226,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 227,
+      "version": "unknown",
+      "total_reward": -151.92,
+      "length_steps": 44
+    },
+    {
+      "episode": 228,
+      "version": "unknown",
+      "total_reward": -144.18,
+      "length_steps": 42
+    },
+    {
+      "episode": 229,
+      "version": "unknown",
+      "total_reward": -149.1,
+      "length_steps": 44
+    },
+    {
+      "episode": 230,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 231,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 232,
+      "version": "unknown",
+      "total_reward": -148.58,
+      "length_steps": 45
+    },
+    {
+      "episode": 233,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 234,
+      "version": "unknown",
+      "total_reward": -165.94,
+      "length_steps": 52
+    },
+    {
+      "episode": 235,
+      "version": "unknown",
+      "total_reward": -149.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 236,
+      "version": "unknown",
+      "total_reward": -153.89,
+      "length_steps": 43
+    },
+    {
+      "episode": 237,
+      "version": "unknown",
+      "total_reward": -151.52,
+      "length_steps": 41
+    },
+    {
+      "episode": 238,
+      "version": "unknown",
+      "total_reward": -114.1,
+      "length_steps": 39
+    },
+    {
+      "episode": 239,
+      "version": "unknown",
+      "total_reward": -154.73,
+      "length_steps": 45
+    },
+    {
+      "episode": 240,
+      "version": "unknown",
+      "total_reward": -114.1,
+      "length_steps": 39
+    },
+    {
+      "episode": 241,
+      "version": "unknown",
+      "total_reward": -128.45,
+      "length_steps": 43
+    },
+    {
+      "episode": 242,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 243,
+      "version": "unknown",
+      "total_reward": -162.71,
+      "length_steps": 48
+    },
+    {
+      "episode": 244,
+      "version": "unknown",
+      "total_reward": -195.12,
+      "length_steps": 40
+    },
+    {
+      "episode": 245,
+      "version": "unknown",
+      "total_reward": -129.47,
+      "length_steps": 45
+    },
+    {
+      "episode": 246,
+      "version": "unknown",
+      "total_reward": -103.7,
+      "length_steps": 39
+    },
+    {
+      "episode": 247,
+      "version": "unknown",
+      "total_reward": -272.58,
+      "length_steps": 77
+    },
+    {
+      "episode": 248,
+      "version": "unknown",
+      "total_reward": -128.06,
+      "length_steps": 40
+    },
+    {
+      "episode": 249,
+      "version": "unknown",
+      "total_reward": -128.94,
+      "length_steps": 44
+    },
+    {
+      "episode": 250,
+      "version": "unknown",
+      "total_reward": -174.38,
+      "length_steps": 59
+    },
+    {
+      "episode": 251,
+      "version": "unknown",
+      "total_reward": -202.23,
+      "length_steps": 47
+    },
+    {
+      "episode": 252,
+      "version": "unknown",
+      "total_reward": -127.85,
+      "length_steps": 42
+    },
+    {
+      "episode": 253,
+      "version": "unknown",
+      "total_reward": -153.89,
+      "length_steps": 43
+    },
+    {
+      "episode": 254,
+      "version": "unknown",
+      "total_reward": -128.6,
+      "length_steps": 41
+    },
+    {
+      "episode": 255,
+      "version": "unknown",
+      "total_reward": -146.2,
+      "length_steps": 62
+    },
+    {
+      "episode": 256,
+      "version": "unknown",
+      "total_reward": -130.96,
+      "length_steps": 42
+    },
+    {
+      "episode": 257,
+      "version": "unknown",
+      "total_reward": -144.18,
+      "length_steps": 42
+    },
+    {
+      "episode": 258,
+      "version": "unknown",
+      "total_reward": -144.18,
+      "length_steps": 42
+    },
+    {
+      "episode": 259,
+      "version": "unknown",
+      "total_reward": -117.28,
+      "length_steps": 43
+    },
+    {
+      "episode": 260,
+      "version": "unknown",
+      "total_reward": -108.87,
+      "length_steps": 49
+    },
+    {
+      "episode": 261,
+      "version": "unknown",
+      "total_reward": -98.93,
+      "length_steps": 43
+    },
+    {
+      "episode": 262,
+      "version": "unknown",
+      "total_reward": -142.23,
+      "length_steps": 47
+    },
+    {
+      "episode": 263,
+      "version": "unknown",
+      "total_reward": -107.54,
+      "length_steps": 39
+    },
+    {
+      "episode": 264,
+      "version": "unknown",
+      "total_reward": -109.45,
+      "length_steps": 52
+    },
+    {
+      "episode": 265,
+      "version": "unknown",
+      "total_reward": -156.95,
+      "length_steps": 46
+    },
+    {
+      "episode": 266,
+      "version": "unknown",
+      "total_reward": -158.16,
+      "length_steps": 47
+    },
+    {
+      "episode": 267,
+      "version": "unknown",
+      "total_reward": -184.45,
+      "length_steps": 60
+    },
+    {
+      "episode": 268,
+      "version": "unknown",
+      "total_reward": -103.7,
+      "length_steps": 39
+    },
+    {
+      "episode": 269,
+      "version": "unknown",
+      "total_reward": -97.35,
+      "length_steps": 38
+    },
+    {
+      "episode": 270,
+      "version": "unknown",
+      "total_reward": -122.48,
+      "length_steps": 57
+    },
+    {
+      "episode": 271,
+      "version": "unknown",
+      "total_reward": -128.03,
+      "length_steps": 63
+    },
+    {
+      "episode": 272,
+      "version": "unknown",
+      "total_reward": -86.13,
+      "length_steps": 38
+    },
+    {
+      "episode": 273,
+      "version": "unknown",
+      "total_reward": -144.18,
+      "length_steps": 42
+    },
+    {
+      "episode": 274,
+      "version": "unknown",
+      "total_reward": -162.41,
+      "length_steps": 50
+    },
+    {
+      "episode": 275,
+      "version": "unknown",
+      "total_reward": -128.6,
+      "length_steps": 41
+    },
+    {
+      "episode": 276,
+      "version": "unknown",
+      "total_reward": -122.8,
+      "length_steps": 41
+    },
+    {
+      "episode": 277,
+      "version": "unknown",
+      "total_reward": -103.6,
+      "length_steps": 45
+    },
+    {
+      "episode": 278,
+      "version": "unknown",
+      "total_reward": -144.88,
+      "length_steps": 64
+    },
+    {
+      "episode": 279,
+      "version": "unknown",
+      "total_reward": -157.43,
+      "length_steps": 47
+    },
+    {
+      "episode": 280,
+      "version": "unknown",
+      "total_reward": -289.39,
+      "length_steps": 86
+    },
+    {
+      "episode": 281,
+      "version": "unknown",
+      "total_reward": -148.14,
+      "length_steps": 41
+    },
+    {
+      "episode": 282,
+      "version": "unknown",
+      "total_reward": -163.32,
+      "length_steps": 47
+    },
+    {
+      "episode": 283,
+      "version": "unknown",
+      "total_reward": -106.75,
+      "length_steps": 49
+    },
+    {
+      "episode": 284,
+      "version": "unknown",
+      "total_reward": -206.47,
+      "length_steps": 79
+    },
+    {
+      "episode": 285,
+      "version": "unknown",
+      "total_reward": -157.43,
+      "length_steps": 47
+    },
+    {
+      "episode": 286,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 287,
+      "version": "unknown",
+      "total_reward": -147.91,
+      "length_steps": 46
+    },
+    {
+      "episode": 288,
+      "version": "unknown",
+      "total_reward": -207.1,
+      "length_steps": 71
+    },
+    {
+      "episode": 289,
+      "version": "unknown",
+      "total_reward": -176.91,
+      "length_steps": 57
+    },
+    {
+      "episode": 290,
+      "version": "unknown",
+      "total_reward": -245.57,
+      "length_steps": 77
+    },
+    {
+      "episode": 291,
+      "version": "unknown",
+      "total_reward": -152.41,
+      "length_steps": 43
+    },
+    {
+      "episode": 292,
+      "version": "unknown",
+      "total_reward": -571.93,
+      "length_steps": 125
+    },
+    {
+      "episode": 293,
+      "version": "unknown",
+      "total_reward": -149.03,
+      "length_steps": 51
+    },
+    {
+      "episode": 294,
+      "version": "unknown",
+      "total_reward": -146.73,
+      "length_steps": 42
+    },
+    {
+      "episode": 295,
+      "version": "unknown",
+      "total_reward": -86.13,
+      "length_steps": 38
+    },
+    {
+      "episode": 296,
+      "version": "unknown",
+      "total_reward": -433.47,
+      "length_steps": 85
+    },
+    {
+      "episode": 297,
+      "version": "unknown",
+      "total_reward": -120.17,
+      "length_steps": 38
+    },
+    {
+      "episode": 298,
+      "version": "unknown",
+      "total_reward": -120.17,
+      "length_steps": 38
+    },
+    {
+      "episode": 299,
+      "version": "unknown",
+      "total_reward": -167.93,
+      "length_steps": 53
+    },
+    {
+      "episode": 300,
+      "version": "unknown",
+      "total_reward": -156.03,
+      "length_steps": 46
+    },
+    {
+      "episode": 301,
+      "version": "unknown",
+      "total_reward": -323.06,
+      "length_steps": 92
+    },
+    {
+      "episode": 302,
+      "version": "unknown",
+      "total_reward": -264.06,
+      "length_steps": 81
+    },
+    {
+      "episode": 303,
+      "version": "unknown",
+      "total_reward": -169.07,
+      "length_steps": 45
+    },
+    {
+      "episode": 304,
+      "version": "unknown",
+      "total_reward": -132.08,
+      "length_steps": 42
+    },
+    {
+      "episode": 305,
+      "version": "unknown",
+      "total_reward": -141.32,
+      "length_steps": 56
+    },
+    {
+      "episode": 306,
+      "version": "unknown",
+      "total_reward": -268.2,
+      "length_steps": 72
+    },
+    {
+      "episode": 307,
+      "version": "unknown",
+      "total_reward": -1211.72,
+      "length_steps": 179
+    },
+    {
+      "episode": 308,
+      "version": "unknown",
+      "total_reward": -174.48,
+      "length_steps": 62
+    },
+    {
+      "episode": 309,
+      "version": "unknown",
+      "total_reward": -143.5,
+      "length_steps": 40
+    },
+    {
+      "episode": 310,
+      "version": "unknown",
+      "total_reward": -147.59,
+      "length_steps": 48
+    },
+    {
+      "episode": 311,
+      "version": "unknown",
+      "total_reward": -182.99,
+      "length_steps": 58
+    },
+    {
+      "episode": 312,
+      "version": "unknown",
+      "total_reward": -172.23,
+      "length_steps": 55
+    },
+    {
+      "episode": 313,
+      "version": "unknown",
+      "total_reward": -160.42,
+      "length_steps": 55
+    },
+    {
+      "episode": 314,
+      "version": "unknown",
+      "total_reward": -191.75,
+      "length_steps": 83
+    },
+    {
+      "episode": 315,
+      "version": "unknown",
+      "total_reward": -245.96,
+      "length_steps": 75
+    },
+    {
+      "episode": 316,
+      "version": "unknown",
+      "total_reward": -168.72,
+      "length_steps": 50
+    },
+    {
+      "episode": 317,
+      "version": "unknown",
+      "total_reward": -142.04,
+      "length_steps": 48
+    },
+    {
+      "episode": 318,
+      "version": "unknown",
+      "total_reward": -165.91,
+      "length_steps": 49
+    },
+    {
+      "episode": 319,
+      "version": "unknown",
+      "total_reward": -174.8,
+      "length_steps": 52
+    },
+    {
+      "episode": 320,
+      "version": "unknown",
+      "total_reward": -164.93,
+      "length_steps": 41
+    },
+    {
+      "episode": 321,
+      "version": "unknown",
+      "total_reward": -468.49,
+      "length_steps": 97
+    },
+    {
+      "episode": 322,
+      "version": "unknown",
+      "total_reward": -541.2,
+      "length_steps": 104
+    },
+    {
+      "episode": 323,
+      "version": "unknown",
+      "total_reward": -552.18,
+      "length_steps": 105
+    },
+    {
+      "episode": 324,
+      "version": "unknown",
+      "total_reward": -152.41,
+      "length_steps": 43
+    },
+    {
+      "episode": 325,
+      "version": "unknown",
+      "total_reward": -196.58,
+      "length_steps": 58
+    },
+    {
+      "episode": 326,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 327,
+      "version": "unknown",
+      "total_reward": -157.35,
+      "length_steps": 54
+    },
+    {
+      "episode": 328,
+      "version": "unknown",
+      "total_reward": -3307.12,
+      "length_steps": 285
+    },
+    {
+      "episode": 329,
+      "version": "unknown",
+      "total_reward": -2261.32,
+      "length_steps": 177
+    },
+    {
+      "episode": 330,
+      "version": "unknown",
+      "total_reward": -136.39,
+      "length_steps": 45
+    },
+    {
+      "episode": 331,
+      "version": "unknown",
+      "total_reward": -145.25,
+      "length_steps": 40
+    },
+    {
+      "episode": 332,
+      "version": "unknown",
+      "total_reward": -153.52,
+      "length_steps": 44
+    },
+    {
+      "episode": 333,
+      "version": "unknown",
+      "total_reward": -311.44,
+      "length_steps": 90
+    },
+    {
+      "episode": 334,
+      "version": "unknown",
+      "total_reward": -165.91,
+      "length_steps": 49
+    },
+    {
+      "episode": 335,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 336,
+      "version": "unknown",
+      "total_reward": -160.73,
+      "length_steps": 47
+    },
+    {
+      "episode": 337,
+      "version": "unknown",
+      "total_reward": -283.61,
+      "length_steps": 62
+    },
+    {
+      "episode": 338,
+      "version": "unknown",
+      "total_reward": -586.01,
+      "length_steps": 108
+    },
+    {
+      "episode": 339,
+      "version": "unknown",
+      "total_reward": -292.2,
+      "length_steps": 69
+    },
+    {
+      "episode": 340,
+      "version": "unknown",
+      "total_reward": -163.24,
+      "length_steps": 48
+    },
+    {
+      "episode": 341,
+      "version": "unknown",
+      "total_reward": -172.23,
+      "length_steps": 55
+    },
+    {
+      "episode": 342,
+      "version": "unknown",
+      "total_reward": -205.03,
+      "length_steps": 60
+    },
+    {
+      "episode": 343,
+      "version": "unknown",
+      "total_reward": -586.01,
+      "length_steps": 108
+    },
+    {
+      "episode": 344,
+      "version": "unknown",
+      "total_reward": -185.02,
+      "length_steps": 55
+    },
+    {
+      "episode": 345,
+      "version": "unknown",
+      "total_reward": -156.95,
+      "length_steps": 46
+    },
+    {
+      "episode": 346,
+      "version": "unknown",
+      "total_reward": -201.57,
+      "length_steps": 57
+    },
+    {
+      "episode": 347,
+      "version": "unknown",
+      "total_reward": -160.01,
+      "length_steps": 40
+    },
+    {
+      "episode": 348,
+      "version": "unknown",
+      "total_reward": -160.01,
+      "length_steps": 40
+    },
+    {
+      "episode": 349,
+      "version": "unknown",
+      "total_reward": -150.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 350,
+      "version": "unknown",
+      "total_reward": -160.01,
+      "length_steps": 40
+    },
+    {
+      "episode": 351,
+      "version": "unknown",
+      "total_reward": -229.96,
+      "length_steps": 45
+    },
+    {
+      "episode": 352,
+      "version": "unknown",
+      "total_reward": -223.18,
+      "length_steps": 44
+    },
+    {
+      "episode": 353,
+      "version": "unknown",
+      "total_reward": -259.69,
+      "length_steps": 76
+    },
+    {
+      "episode": 354,
+      "version": "unknown",
+      "total_reward": -238.54,
+      "length_steps": 50
+    },
+    {
+      "episode": 355,
+      "version": "unknown",
+      "total_reward": -243.46,
+      "length_steps": 48
+    },
+    {
+      "episode": 356,
+      "version": "unknown",
+      "total_reward": -261.87,
+      "length_steps": 49
+    },
+    {
+      "episode": 357,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 358,
+      "version": "unknown",
+      "total_reward": -243.3,
+      "length_steps": 49
+    },
+    {
+      "episode": 359,
+      "version": "unknown",
+      "total_reward": -233.73,
+      "length_steps": 53
+    },
+    {
+      "episode": 360,
+      "version": "unknown",
+      "total_reward": -256.34,
+      "length_steps": 55
+    },
+    {
+      "episode": 361,
+      "version": "unknown",
+      "total_reward": -342.76,
+      "length_steps": 100
+    },
+    {
+      "episode": 362,
+      "version": "unknown",
+      "total_reward": -333.73,
+      "length_steps": 46
+    },
+    {
+      "episode": 363,
+      "version": "unknown",
+      "total_reward": -251.34,
+      "length_steps": 49
+    },
+    {
+      "episode": 364,
+      "version": "unknown",
+      "total_reward": -243.3,
+      "length_steps": 49
+    },
+    {
+      "episode": 365,
+      "version": "unknown",
+      "total_reward": -1009.86,
+      "length_steps": 65
+    },
+    {
+      "episode": 366,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 367,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 368,
+      "version": "unknown",
+      "total_reward": -266.38,
+      "length_steps": 87
+    },
+    {
+      "episode": 369,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 370,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 371,
+      "version": "unknown",
+      "total_reward": -178.85,
+      "length_steps": 40
+    },
+    {
+      "episode": 372,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 373,
+      "version": "unknown",
+      "total_reward": -5315.41,
+      "length_steps": 103
+    },
+    {
+      "episode": 374,
+      "version": "unknown",
+      "total_reward": -2651.47,
+      "length_steps": 85
+    },
+    {
+      "episode": 375,
+      "version": "unknown",
+      "total_reward": -2783.09,
+      "length_steps": 87
+    },
+    {
+      "episode": 376,
+      "version": "unknown",
+      "total_reward": -227.81,
+      "length_steps": 55
+    },
+    {
+      "episode": 377,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 378,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 379,
+      "version": "unknown",
+      "total_reward": -2248.11,
+      "length_steps": 81
+    },
+    {
+      "episode": 380,
+      "version": "unknown",
+      "total_reward": -1572.47,
+      "length_steps": 73
+    },
+    {
+      "episode": 381,
+      "version": "unknown",
+      "total_reward": -1389.64,
+      "length_steps": 71
+    },
+    {
+      "episode": 382,
+      "version": "unknown",
+      "total_reward": -243.46,
+      "length_steps": 48
+    },
+    {
+      "episode": 383,
+      "version": "unknown",
+      "total_reward": -241.54,
+      "length_steps": 48
+    },
+    {
+      "episode": 384,
+      "version": "unknown",
+      "total_reward": -253.35,
+      "length_steps": 49
+    },
+    {
+      "episode": 385,
+      "version": "unknown",
+      "total_reward": -320.35,
+      "length_steps": 96
+    },
+    {
+      "episode": 386,
+      "version": "unknown",
+      "total_reward": -202.7,
+      "length_steps": 46
+    },
+    {
+      "episode": 387,
+      "version": "unknown",
+      "total_reward": -229.96,
+      "length_steps": 45
+    },
+    {
+      "episode": 388,
+      "version": "unknown",
+      "total_reward": -229.8,
+      "length_steps": 41
+    },
+    {
+      "episode": 389,
+      "version": "unknown",
+      "total_reward": -264.43,
+      "length_steps": 76
+    },
+    {
+      "episode": 390,
+      "version": "unknown",
+      "total_reward": -202.7,
+      "length_steps": 46
+    },
+    {
+      "episode": 391,
+      "version": "unknown",
+      "total_reward": -221.88,
+      "length_steps": 47
+    },
+    {
+      "episode": 392,
+      "version": "unknown",
+      "total_reward": -229.8,
+      "length_steps": 41
+    },
+    {
+      "episode": 393,
+      "version": "unknown",
+      "total_reward": -232.03,
+      "length_steps": 47
+    },
+    {
+      "episode": 394,
+      "version": "unknown",
+      "total_reward": -227.14,
+      "length_steps": 48
+    },
+    {
+      "episode": 395,
+      "version": "unknown",
+      "total_reward": -374.0,
+      "length_steps": 83
+    },
+    {
+      "episode": 396,
+      "version": "unknown",
+      "total_reward": -232.03,
+      "length_steps": 47
+    },
+    {
+      "episode": 397,
+      "version": "unknown",
+      "total_reward": -204.03,
+      "length_steps": 46
+    },
+    {
+      "episode": 398,
+      "version": "unknown",
+      "total_reward": -232.03,
+      "length_steps": 47
+    },
+    {
+      "episode": 399,
+      "version": "unknown",
+      "total_reward": -184.27,
+      "length_steps": 45
+    },
+    {
+      "episode": 400,
+      "version": "unknown",
+      "total_reward": -190.17,
+      "length_steps": 46
+    },
+    {
+      "episode": 401,
+      "version": "unknown",
+      "total_reward": -188.03,
+      "length_steps": 46
+    },
+    {
+      "episode": 402,
+      "version": "unknown",
+      "total_reward": -167.5,
+      "length_steps": 43
+    },
+    {
+      "episode": 403,
+      "version": "unknown",
+      "total_reward": -351.71,
+      "length_steps": 81
+    },
+    {
+      "episode": 404,
+      "version": "unknown",
+      "total_reward": -275.48,
+      "length_steps": 41
+    },
+    {
+      "episode": 405,
+      "version": "unknown",
+      "total_reward": -228.15,
+      "length_steps": 44
+    },
+    {
+      "episode": 406,
+      "version": "unknown",
+      "total_reward": -188.03,
+      "length_steps": 46
+    },
+    {
+      "episode": 407,
+      "version": "unknown",
+      "total_reward": -283.52,
+      "length_steps": 46
+    },
+    {
+      "episode": 408,
+      "version": "unknown",
+      "total_reward": -231.1,
+      "length_steps": 51
+    },
+    {
+      "episode": 409,
+      "version": "unknown",
+      "total_reward": -168.95,
+      "length_steps": 46
+    },
+    {
+      "episode": 410,
+      "version": "unknown",
+      "total_reward": -201.21,
+      "length_steps": 61
+    },
+    {
+      "episode": 411,
+      "version": "unknown",
+      "total_reward": -210.68,
+      "length_steps": 64
+    },
+    {
+      "episode": 412,
+      "version": "unknown",
+      "total_reward": -216.11,
+      "length_steps": 57
+    },
+    {
+      "episode": 413,
+      "version": "unknown",
+      "total_reward": -187.31,
+      "length_steps": 48
+    },
+    {
+      "episode": 414,
+      "version": "unknown",
+      "total_reward": -208.1,
+      "length_steps": 41
+    },
+    {
+      "episode": 415,
+      "version": "unknown",
+      "total_reward": -167.5,
+      "length_steps": 43
+    },
+    {
+      "episode": 416,
+      "version": "unknown",
+      "total_reward": -251.81,
+      "length_steps": 65
+    },
+    {
+      "episode": 417,
+      "version": "unknown",
+      "total_reward": -177.57,
+      "length_steps": 44
+    },
+    {
+      "episode": 418,
+      "version": "unknown",
+      "total_reward": -167.5,
+      "length_steps": 43
+    },
+    {
+      "episode": 419,
+      "version": "unknown",
+      "total_reward": -174.24,
+      "length_steps": 44
+    },
+    {
+      "episode": 420,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 421,
+      "version": "unknown",
+      "total_reward": -224.14,
+      "length_steps": 59
+    },
+    {
+      "episode": 422,
+      "version": "unknown",
+      "total_reward": -178.37,
+      "length_steps": 44
+    },
+    {
+      "episode": 423,
+      "version": "unknown",
+      "total_reward": -184.85,
+      "length_steps": 47
+    },
+    {
+      "episode": 424,
+      "version": "unknown",
+      "total_reward": -224.47,
+      "length_steps": 63
+    },
+    {
+      "episode": 425,
+      "version": "unknown",
+      "total_reward": -224.47,
+      "length_steps": 63
+    },
+    {
+      "episode": 426,
+      "version": "unknown",
+      "total_reward": -210.68,
+      "length_steps": 64
+    },
+    {
+      "episode": 427,
+      "version": "unknown",
+      "total_reward": -224.47,
+      "length_steps": 63
+    },
+    {
+      "episode": 428,
+      "version": "unknown",
+      "total_reward": -185.36,
+      "length_steps": 44
+    },
+    {
+      "episode": 429,
+      "version": "unknown",
+      "total_reward": -189.08,
+      "length_steps": 44
+    },
+    {
+      "episode": 430,
+      "version": "unknown",
+      "total_reward": -164.26,
+      "length_steps": 44
+    },
+    {
+      "episode": 431,
+      "version": "unknown",
+      "total_reward": -228.15,
+      "length_steps": 44
+    },
+    {
+      "episode": 432,
+      "version": "unknown",
+      "total_reward": -228.27,
+      "length_steps": 63
+    },
+    {
+      "episode": 433,
+      "version": "unknown",
+      "total_reward": -197.72,
+      "length_steps": 62
+    },
+    {
+      "episode": 434,
+      "version": "unknown",
+      "total_reward": -195.54,
+      "length_steps": 67
+    },
+    {
+      "episode": 435,
+      "version": "unknown",
+      "total_reward": -182.82,
+      "length_steps": 52
+    },
+    {
+      "episode": 436,
+      "version": "unknown",
+      "total_reward": -210.54,
+      "length_steps": 66
+    },
+    {
+      "episode": 437,
+      "version": "unknown",
+      "total_reward": -235.3,
+      "length_steps": 43
+    },
+    {
+      "episode": 438,
+      "version": "unknown",
+      "total_reward": -185.8,
+      "length_steps": 58
+    },
+    {
+      "episode": 439,
+      "version": "unknown",
+      "total_reward": -178.15,
+      "length_steps": 55
+    },
+    {
+      "episode": 440,
+      "version": "unknown",
+      "total_reward": -189.91,
+      "length_steps": 49
+    },
+    {
+      "episode": 441,
+      "version": "unknown",
+      "total_reward": -171.39,
+      "length_steps": 52
+    },
+    {
+      "episode": 442,
+      "version": "unknown",
+      "total_reward": -158.49,
+      "length_steps": 41
+    },
+    {
+      "episode": 443,
+      "version": "unknown",
+      "total_reward": -183.15,
+      "length_steps": 57
+    },
+    {
+      "episode": 444,
+      "version": "unknown",
+      "total_reward": -192.67,
+      "length_steps": 50
+    },
+    {
+      "episode": 445,
+      "version": "unknown",
+      "total_reward": -175.02,
+      "length_steps": 43
+    },
+    {
+      "episode": 446,
+      "version": "unknown",
+      "total_reward": -189.91,
+      "length_steps": 49
+    },
+    {
+      "episode": 447,
+      "version": "unknown",
+      "total_reward": -189.91,
+      "length_steps": 49
+    },
+    {
+      "episode": 448,
+      "version": "unknown",
+      "total_reward": -173.55,
+      "length_steps": 53
+    },
+    {
+      "episode": 449,
+      "version": "unknown",
+      "total_reward": -185.8,
+      "length_steps": 58
+    },
+    {
+      "episode": 450,
+      "version": "unknown",
+      "total_reward": -180.6,
+      "length_steps": 56
+    },
+    {
+      "episode": 451,
+      "version": "unknown",
+      "total_reward": -157.73,
+      "length_steps": 44
+    },
+    {
+      "episode": 452,
+      "version": "unknown",
+      "total_reward": -200.55,
+      "length_steps": 48
+    },
+    {
+      "episode": 453,
+      "version": "unknown",
+      "total_reward": -180.38,
+      "length_steps": 45
+    },
+    {
+      "episode": 454,
+      "version": "unknown",
+      "total_reward": -178.15,
+      "length_steps": 55
+    },
+    {
+      "episode": 455,
+      "version": "unknown",
+      "total_reward": -187.31,
+      "length_steps": 48
+    },
+    {
+      "episode": 456,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 457,
+      "version": "unknown",
+      "total_reward": -192.67,
+      "length_steps": 50
+    },
+    {
+      "episode": 458,
+      "version": "unknown",
+      "total_reward": -171.39,
+      "length_steps": 52
+    },
+    {
+      "episode": 459,
+      "version": "unknown",
+      "total_reward": -181.48,
+      "length_steps": 56
+    },
+    {
+      "episode": 460,
+      "version": "unknown",
+      "total_reward": -195.57,
+      "length_steps": 51
+    },
+    {
+      "episode": 461,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 462,
+      "version": "unknown",
+      "total_reward": -194.33,
+      "length_steps": 61
+    },
+    {
+      "episode": 463,
+      "version": "unknown",
+      "total_reward": -195.57,
+      "length_steps": 51
+    },
+    {
+      "episode": 464,
+      "version": "unknown",
+      "total_reward": -181.69,
+      "length_steps": 42
+    },
+    {
+      "episode": 465,
+      "version": "unknown",
+      "total_reward": -189.91,
+      "length_steps": 49
+    },
+    {
+      "episode": 466,
+      "version": "unknown",
+      "total_reward": -171.39,
+      "length_steps": 52
+    },
+    {
+      "episode": 467,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 468,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 469,
+      "version": "unknown",
+      "total_reward": -164.93,
+      "length_steps": 41
+    },
+    {
+      "episode": 470,
+      "version": "unknown",
+      "total_reward": -167.39,
+      "length_steps": 50
+    },
+    {
+      "episode": 471,
+      "version": "unknown",
+      "total_reward": -158.36,
+      "length_steps": 46
+    },
+    {
+      "episode": 472,
+      "version": "unknown",
+      "total_reward": -145.42,
+      "length_steps": 41
+    },
+    {
+      "episode": 473,
+      "version": "unknown",
+      "total_reward": -165.53,
+      "length_steps": 49
+    },
+    {
+      "episode": 474,
+      "version": "unknown",
+      "total_reward": -175.11,
+      "length_steps": 60
+    },
+    {
+      "episode": 475,
+      "version": "unknown",
+      "total_reward": -198.14,
+      "length_steps": 47
+    },
+    {
+      "episode": 476,
+      "version": "unknown",
+      "total_reward": -189.91,
+      "length_steps": 49
+    },
+    {
+      "episode": 477,
+      "version": "unknown",
+      "total_reward": -162.11,
+      "length_steps": 47
+    },
+    {
+      "episode": 478,
+      "version": "unknown",
+      "total_reward": -182.54,
+      "length_steps": 46
+    },
+    {
+      "episode": 479,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 480,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 481,
+      "version": "unknown",
+      "total_reward": -171.39,
+      "length_steps": 52
+    },
+    {
+      "episode": 482,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 483,
+      "version": "unknown",
+      "total_reward": -150.18,
+      "length_steps": 41
+    },
+    {
+      "episode": 484,
+      "version": "unknown",
+      "total_reward": -157.73,
+      "length_steps": 44
+    },
+    {
+      "episode": 485,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 486,
+      "version": "unknown",
+      "total_reward": -177.38,
+      "length_steps": 43
+    },
+    {
+      "episode": 487,
+      "version": "unknown",
+      "total_reward": -156.47,
+      "length_steps": 43
+    },
+    {
+      "episode": 488,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 489,
+      "version": "unknown",
+      "total_reward": -184.2,
+      "length_steps": 44
+    },
+    {
+      "episode": 490,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 491,
+      "version": "unknown",
+      "total_reward": -180.38,
+      "length_steps": 45
+    },
+    {
+      "episode": 492,
+      "version": "unknown",
+      "total_reward": -135.6,
+      "length_steps": 40
+    },
+    {
+      "episode": 493,
+      "version": "unknown",
+      "total_reward": -182.54,
+      "length_steps": 46
+    },
+    {
+      "episode": 494,
+      "version": "unknown",
+      "total_reward": -184.2,
+      "length_steps": 44
+    },
+    {
+      "episode": 495,
+      "version": "unknown",
+      "total_reward": -178.37,
+      "length_steps": 44
+    },
+    {
+      "episode": 496,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 497,
+      "version": "unknown",
+      "total_reward": -180.38,
+      "length_steps": 45
+    },
+    {
+      "episode": 498,
+      "version": "unknown",
+      "total_reward": -178.37,
+      "length_steps": 44
+    },
+    {
+      "episode": 499,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 500,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 501,
+      "version": "unknown",
+      "total_reward": -170.56,
+      "length_steps": 41
+    },
+    {
+      "episode": 502,
+      "version": "unknown",
+      "total_reward": -176.5,
+      "length_steps": 43
+    },
+    {
+      "episode": 503,
+      "version": "unknown",
+      "total_reward": -189.52,
+      "length_steps": 43
+    },
+    {
+      "episode": 504,
+      "version": "unknown",
+      "total_reward": -193.77,
+      "length_steps": 45
+    },
+    {
+      "episode": 505,
+      "version": "unknown",
+      "total_reward": -181.69,
+      "length_steps": 42
+    },
+    {
+      "episode": 506,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 507,
+      "version": "unknown",
+      "total_reward": -225.43,
+      "length_steps": 43
+    },
+    {
+      "episode": 508,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 509,
+      "version": "unknown",
+      "total_reward": -149.56,
+      "length_steps": 43
+    },
+    {
+      "episode": 510,
+      "version": "unknown",
+      "total_reward": -175.78,
+      "length_steps": 45
+    },
+    {
+      "episode": 511,
+      "version": "unknown",
+      "total_reward": -153.55,
+      "length_steps": 42
+    },
+    {
+      "episode": 512,
+      "version": "unknown",
+      "total_reward": -177.84,
+      "length_steps": 44
+    },
+    {
+      "episode": 513,
+      "version": "unknown",
+      "total_reward": -156.49,
+      "length_steps": 41
+    },
+    {
+      "episode": 514,
+      "version": "unknown",
+      "total_reward": -162.11,
+      "length_steps": 47
+    },
+    {
+      "episode": 515,
+      "version": "unknown",
+      "total_reward": -162.11,
+      "length_steps": 47
+    },
+    {
+      "episode": 516,
+      "version": "unknown",
+      "total_reward": -158.49,
+      "length_steps": 41
+    },
+    {
+      "episode": 517,
+      "version": "unknown",
+      "total_reward": -165.53,
+      "length_steps": 49
+    },
+    {
+      "episode": 518,
+      "version": "unknown",
+      "total_reward": -156.54,
+      "length_steps": 42
+    },
+    {
+      "episode": 519,
+      "version": "unknown",
+      "total_reward": -156.47,
+      "length_steps": 43
+    },
+    {
+      "episode": 520,
+      "version": "unknown",
+      "total_reward": -157.73,
+      "length_steps": 44
+    },
+    {
+      "episode": 521,
+      "version": "unknown",
+      "total_reward": -157.73,
+      "length_steps": 44
+    },
+    {
+      "episode": 522,
+      "version": "unknown",
+      "total_reward": -159.1,
+      "length_steps": 45
+    },
+    {
+      "episode": 523,
+      "version": "unknown",
+      "total_reward": -172.6,
+      "length_steps": 45
+    },
+    {
+      "episode": 524,
+      "version": "unknown",
+      "total_reward": -158.49,
+      "length_steps": 41
+    },
+    {
+      "episode": 525,
+      "version": "unknown",
+      "total_reward": -157.4,
+      "length_steps": 47
+    },
+    {
+      "episode": 526,
+      "version": "unknown",
+      "total_reward": -162.11,
+      "length_steps": 47
+    },
+    {
+      "episode": 527,
+      "version": "unknown",
+      "total_reward": -160.56,
+      "length_steps": 46
+    },
+    {
+      "episode": 528,
+      "version": "unknown",
+      "total_reward": -162.11,
+      "length_steps": 47
+    },
+    {
+      "episode": 529,
+      "version": "unknown",
+      "total_reward": -166.55,
+      "length_steps": 42
+    },
+    {
+      "episode": 530,
+      "version": "unknown",
+      "total_reward": -157.17,
+      "length_steps": 40
+    },
+    {
+      "episode": 531,
+      "version": "unknown",
+      "total_reward": -159.1,
+      "length_steps": 45
+    },
+    {
+      "episode": 532,
+      "version": "unknown",
+      "total_reward": -110.06,
+      "length_steps": 41
+    },
+    {
+      "episode": 533,
+      "version": "unknown",
+      "total_reward": -149.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 534,
+      "version": "unknown",
+      "total_reward": -160.56,
+      "length_steps": 46
+    },
+    {
+      "episode": 535,
+      "version": "unknown",
+      "total_reward": -176.89,
+      "length_steps": 42
+    },
+    {
+      "episode": 536,
+      "version": "unknown",
+      "total_reward": -189.52,
+      "length_steps": 43
+    },
+    {
+      "episode": 537,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 538,
+      "version": "unknown",
+      "total_reward": -181.69,
+      "length_steps": 42
+    },
+    {
+      "episode": 539,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 540,
+      "version": "unknown",
+      "total_reward": -159.1,
+      "length_steps": 45
+    },
+    {
+      "episode": 541,
+      "version": "unknown",
+      "total_reward": -151.41,
+      "length_steps": 42
+    },
+    {
+      "episode": 542,
+      "version": "unknown",
+      "total_reward": -149.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 543,
+      "version": "unknown",
+      "total_reward": -157.73,
+      "length_steps": 44
+    },
+    {
+      "episode": 544,
+      "version": "unknown",
+      "total_reward": -159.1,
+      "length_steps": 45
+    },
+    {
+      "episode": 545,
+      "version": "unknown",
+      "total_reward": -160.56,
+      "length_steps": 46
+    },
+    {
+      "episode": 546,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 547,
+      "version": "unknown",
+      "total_reward": -157.73,
+      "length_steps": 44
+    },
+    {
+      "episode": 548,
+      "version": "unknown",
+      "total_reward": -159.1,
+      "length_steps": 45
+    },
+    {
+      "episode": 549,
+      "version": "unknown",
+      "total_reward": -149.09,
+      "length_steps": 47
+    },
+    {
+      "episode": 550,
+      "version": "unknown",
+      "total_reward": -157.17,
+      "length_steps": 48
+    },
+    {
+      "episode": 551,
+      "version": "unknown",
+      "total_reward": -159.1,
+      "length_steps": 45
+    },
+    {
+      "episode": 552,
+      "version": "unknown",
+      "total_reward": -160.56,
+      "length_steps": 46
+    },
+    {
+      "episode": 553,
+      "version": "unknown",
+      "total_reward": -155.86,
+      "length_steps": 46
+    },
+    {
+      "episode": 554,
+      "version": "unknown",
+      "total_reward": -156.47,
+      "length_steps": 43
+    },
+    {
+      "episode": 555,
+      "version": "unknown",
+      "total_reward": -159.1,
+      "length_steps": 45
+    },
+    {
+      "episode": 556,
+      "version": "unknown",
+      "total_reward": -151.5,
+      "length_steps": 43
+    },
+    {
+      "episode": 557,
+      "version": "unknown",
+      "total_reward": -157.73,
+      "length_steps": 44
+    },
+    {
+      "episode": 558,
+      "version": "unknown",
+      "total_reward": -187.07,
+      "length_steps": 52
+    },
+    {
+      "episode": 559,
+      "version": "unknown",
+      "total_reward": -187.76,
+      "length_steps": 46
+    },
+    {
+      "episode": 560,
+      "version": "unknown",
+      "total_reward": -177.38,
+      "length_steps": 43
+    },
+    {
+      "episode": 561,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 562,
+      "version": "unknown",
+      "total_reward": -177.38,
+      "length_steps": 43
+    },
+    {
+      "episode": 563,
+      "version": "unknown",
+      "total_reward": -177.38,
+      "length_steps": 43
+    },
+    {
+      "episode": 564,
+      "version": "unknown",
+      "total_reward": -177.38,
+      "length_steps": 43
+    },
+    {
+      "episode": 565,
+      "version": "unknown",
+      "total_reward": -155.31,
+      "length_steps": 42
+    },
+    {
+      "episode": 566,
+      "version": "unknown",
+      "total_reward": -155.31,
+      "length_steps": 42
+    },
+    {
+      "episode": 567,
+      "version": "unknown",
+      "total_reward": -155.31,
+      "length_steps": 42
+    },
+    {
+      "episode": 568,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 569,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 570,
+      "version": "unknown",
+      "total_reward": -156.47,
+      "length_steps": 43
+    },
+    {
+      "episode": 571,
+      "version": "unknown",
+      "total_reward": -184.98,
+      "length_steps": 44
+    },
+    {
+      "episode": 572,
+      "version": "unknown",
+      "total_reward": -157.73,
+      "length_steps": 44
+    },
+    {
+      "episode": 573,
+      "version": "unknown",
+      "total_reward": -164.93,
+      "length_steps": 41
+    },
+    {
+      "episode": 574,
+      "version": "unknown",
+      "total_reward": -187.76,
+      "length_steps": 46
+    },
+    {
+      "episode": 575,
+      "version": "unknown",
+      "total_reward": -178.37,
+      "length_steps": 44
+    },
+    {
+      "episode": 576,
+      "version": "unknown",
+      "total_reward": -199.17,
+      "length_steps": 43
+    },
+    {
+      "episode": 577,
+      "version": "unknown",
+      "total_reward": -192.67,
+      "length_steps": 49
+    },
+    {
+      "episode": 578,
+      "version": "unknown",
+      "total_reward": -154.25,
+      "length_steps": 41
+    },
+    {
+      "episode": 579,
+      "version": "unknown",
+      "total_reward": -157.17,
+      "length_steps": 40
+    },
+    {
+      "episode": 580,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 581,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 582,
+      "version": "unknown",
+      "total_reward": -154.25,
+      "length_steps": 41
+    },
+    {
+      "episode": 583,
+      "version": "unknown",
+      "total_reward": -188.35,
+      "length_steps": 45
+    },
+    {
+      "episode": 584,
+      "version": "unknown",
+      "total_reward": -184.98,
+      "length_steps": 44
+    },
+    {
+      "episode": 585,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 586,
+      "version": "unknown",
+      "total_reward": -186.32,
+      "length_steps": 45
+    },
+    {
+      "episode": 587,
+      "version": "unknown",
+      "total_reward": -176.04,
+      "length_steps": 42
+    },
+    {
+      "episode": 588,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 589,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 590,
+      "version": "unknown",
+      "total_reward": -186.32,
+      "length_steps": 45
+    },
+    {
+      "episode": 591,
+      "version": "unknown",
+      "total_reward": -189.3,
+      "length_steps": 47
+    },
+    {
+      "episode": 592,
+      "version": "unknown",
+      "total_reward": -179.07,
+      "length_steps": 43
+    },
+    {
+      "episode": 593,
+      "version": "unknown",
+      "total_reward": -145.25,
+      "length_steps": 40
+    },
+    {
+      "episode": 594,
+      "version": "unknown",
+      "total_reward": -163.44,
+      "length_steps": 49
+    },
+    {
+      "episode": 595,
+      "version": "unknown",
+      "total_reward": -158.5,
+      "length_steps": 41
+    },
+    {
+      "episode": 596,
+      "version": "unknown",
+      "total_reward": -154.25,
+      "length_steps": 41
+    },
+    {
+      "episode": 597,
+      "version": "unknown",
+      "total_reward": -156.47,
+      "length_steps": 43
+    },
+    {
+      "episode": 598,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 599,
+      "version": "unknown",
+      "total_reward": -153.28,
+      "length_steps": 40
+    },
+    {
+      "episode": 600,
+      "version": "unknown",
+      "total_reward": -187.33,
+      "length_steps": 56
+    },
+    {
+      "episode": 601,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 602,
+      "version": "unknown",
+      "total_reward": -183.22,
+      "length_steps": 42
+    },
+    {
+      "episode": 603,
+      "version": "unknown",
+      "total_reward": -187.76,
+      "length_steps": 46
+    },
+    {
+      "episode": 604,
+      "version": "unknown",
+      "total_reward": -157.17,
+      "length_steps": 48
+    },
+    {
+      "episode": 605,
+      "version": "unknown",
+      "total_reward": -190.94,
+      "length_steps": 48
+    },
+    {
+      "episode": 606,
+      "version": "unknown",
+      "total_reward": -162.11,
+      "length_steps": 51
+    },
+    {
+      "episode": 607,
+      "version": "unknown",
+      "total_reward": -156.47,
+      "length_steps": 43
+    },
+    {
+      "episode": 608,
+      "version": "unknown",
+      "total_reward": -158.94,
+      "length_steps": 48
+    },
+    {
+      "episode": 609,
+      "version": "unknown",
+      "total_reward": -155.31,
+      "length_steps": 42
+    },
+    {
+      "episode": 610,
+      "version": "unknown",
+      "total_reward": -156.54,
+      "length_steps": 42
+    },
+    {
+      "episode": 611,
+      "version": "unknown",
+      "total_reward": -149.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 612,
+      "version": "unknown",
+      "total_reward": -153.28,
+      "length_steps": 40
+    },
+    {
+      "episode": 613,
+      "version": "unknown",
+      "total_reward": -164.13,
+      "length_steps": 43
+    },
+    {
+      "episode": 614,
+      "version": "unknown",
+      "total_reward": -165.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 615,
+      "version": "unknown",
+      "total_reward": -153.28,
+      "length_steps": 40
+    },
+    {
+      "episode": 616,
+      "version": "unknown",
+      "total_reward": -149.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 617,
+      "version": "unknown",
+      "total_reward": -156.47,
+      "length_steps": 43
+    },
+    {
+      "episode": 618,
+      "version": "unknown",
+      "total_reward": -156.22,
+      "length_steps": 40
+    },
+    {
+      "episode": 619,
+      "version": "unknown",
+      "total_reward": -149.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 620,
+      "version": "unknown",
+      "total_reward": -149.98,
+      "length_steps": 42
+    },
+    {
+      "episode": 621,
+      "version": "unknown",
+      "total_reward": -156.22,
+      "length_steps": 40
+    },
+    {
+      "episode": 622,
+      "version": "unknown",
+      "total_reward": -148.74,
+      "length_steps": 41
+    },
+    {
+      "episode": 623,
+      "version": "unknown",
+      "total_reward": -148.74,
+      "length_steps": 41
+    },
+    {
+      "episode": 624,
+      "version": "unknown",
+      "total_reward": -157.17,
+      "length_steps": 48
+    },
+    {
+      "episode": 625,
+      "version": "unknown",
+      "total_reward": -157.17,
+      "length_steps": 48
+    }
+  ],
+  "config": {
+    "version": "v2",
+    "total_timesteps": 30000,
+    "mode": "per_version"
+  }
+}

@@ -18,6 +18,8 @@ if ret:
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # Reset to beginning
     print(f"Frame size: {frame_width}x{frame_height}")
 
+
+
 # NEW: Grid cell configuration
 CELL_SIZE = 30  # pixels per cell (adjust based on your needs: 5, 10, 20, etc.)
 SHOW_GRID = True  # Set to False to hide grid lines
@@ -150,3 +152,4 @@ for track_id, trajectory in trajectory_history.items():
         first_cell = trajectory[0][3:5]  # (cell_x, cell_y)
         last_cell = trajectory[-1][3:5]
         print(f"  Started at cell {first_cell}, ended at cell {last_cell}")
+
