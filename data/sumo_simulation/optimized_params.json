@@ -9,75 +9,75 @@
   "per_version": {
     "v2": {
       "best_params": {
-        "w_queue": 3.4424989352352524,
-        "w_arrival": 4.503760612153527,
-        "w_through": 0.6862297898495209,
-        "cycle_total": 53.39804353626886
+        "w_queue": 4.913555162794958,
+        "w_arrival": 0.13935198001723598,
+        "w_through": 0.6031655258946769,
+        "cycle_total": 30.579275397497053
       },
-      "best_avg_wait": 11.515276119402985,
-      "baseline_avg_wait": 17.74028358208955,
-      "improvement_pct": 35.09,
-      "n_trials": 30
+      "best_avg_wait": 11.365298507462686,
+      "baseline_avg_wait": 18.96613432835821,
+      "improvement_pct": 40.08,
+      "n_trials": 80
     },
     "v3": {
       "best_params": {
-        "w_queue": 4.536247532331506,
-        "w_arrival": 6.511961317133473,
-        "w_through": 0.8313962884066304,
-        "cycle_total": 30.475506415488447
+        "w_queue": 4.607312426234325,
+        "w_arrival": 1.049267493843905,
+        "w_through": 0.762175977266986,
+        "cycle_total": 30.02225946394212
       },
-      "best_avg_wait": 12.71063076923077,
-      "baseline_avg_wait": 16.204784615384614,
-      "improvement_pct": 21.56,
-      "n_trials": 30
+      "best_avg_wait": 13.994538461538461,
+      "baseline_avg_wait": 22.04565,
+      "improvement_pct": 36.52,
+      "n_trials": 80
     },
     "v4": {
       "best_params": {
-        "w_queue": 4.489940808261727,
-        "w_arrival": 3.883394708929266,
-        "w_through": 0.9761572065185729,
-        "cycle_total": 30.475506415488447
+        "w_queue": 4.435816523585682,
+        "w_arrival": 0.6238257072677769,
+        "w_through": 0.8074735024955512,
+        "cycle_total": 43.63146928043123
       },
-      "best_avg_wait": 8.263809782608694,
-      "baseline_avg_wait": 13.580146739130434,
-      "improvement_pct": 39.15,
-      "n_trials": 30
+      "best_avg_wait": 8.330527173913044,
+      "baseline_avg_wait": 15.619043478260869,
+      "improvement_pct": 46.66,
+      "n_trials": 80
     },
     "v5": {
       "best_params": {
-        "w_queue": 4.543034773147107,
-        "w_arrival": 7.9790908427463725,
-        "w_through": 0.7819120811458214,
-        "cycle_total": 30.0200377730937
+        "w_queue": 2.93512212392992,
+        "w_arrival": 8.37808856302794,
+        "w_through": 0.45288942685346323,
+        "cycle_total": 39.15977322288828
       },
-      "best_avg_wait": 6.529648351648351,
-      "baseline_avg_wait": 13.837593406593406,
-      "improvement_pct": 52.81,
-      "n_trials": 30
+      "best_avg_wait": 3.842868131868132,
+      "baseline_avg_wait": 9.242538461538462,
+      "improvement_pct": 58.42,
+      "n_trials": 80
     },
     "v6": {
       "best_params": {
-        "w_queue": 4.7986703595309725,
-        "w_arrival": 1.4373264981636975,
-        "w_through": 0.6617702146172969,
-        "cycle_total": 30.178122544295565
+        "w_queue": 4.63992532944491,
+        "w_arrival": 5.470682769010899,
+        "w_through": 0.7167190764009185,
+        "cycle_total": 30.01509224976448
       },
-      "best_avg_wait": 17.33459645232816,
-      "baseline_avg_wait": 23.607447893569848,
-      "improvement_pct": 26.57,
-      "n_trials": 30
+      "best_avg_wait": 15.463536585365855,
+      "baseline_avg_wait": 29.90078048780488,
+      "improvement_pct": 48.28,
+      "n_trials": 80
     },
     "v7": {
       "best_params": {
-        "w_queue": 4.178968939922067,
-        "w_arrival": 2.202157195714934,
-        "w_through": 0.18182496720710062,
-        "cycle_total": 52.00854118241206
+        "w_queue": 0.5864957838046074,
+        "w_arrival": 3.770589615691508,
+        "w_through": 0.6985938116968191,
+        "cycle_total": 64.20976304242855
       },
-      "best_avg_wait": 4.1217744360902255,
-      "baseline_avg_wait": 5.510007518796993,
-      "improvement_pct": 25.19,
-      "n_trials": 30
+      "best_avg_wait": 4.1584962406015045,
+      "baseline_avg_wait": 7.4088721804511275,
+      "improvement_pct": 43.87,
+      "n_trials": 80
     }
   }
 }

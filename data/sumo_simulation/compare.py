@@ -130,11 +130,16 @@ def compute_demand_score(queue_count, arrival_rate, through_ratio):
 
 
 def compute_green_split(ns_score, ew_score):
+    green_budget = CYCLE_TOTAL - 2 * YELLOW_DUR  # subtract both yellow phases
+    green_budget = max(green_budget, 2 * MIN_GREEN)
     total = ns_score + ew_score
     if total < 0.01:
-        return CYCLE_TOTAL / 2, CYCLE_TOTAL / 2
-    ns = max(MIN_GREEN, min(MAX_GREEN, CYCLE_TOTAL * ns_score / total))
-    ew = max(MIN_GREEN, min(MAX_GREEN, CYCLE_TOTAL * ew_score / total))
+        return green_budget / 2, green_budget / 2
+    ns = max(MIN_GREEN, min(MAX_GREEN, green_budget * ns_score / total))
+    ew = green_budget - ns
+    ew = max(MIN_GREEN, min(MAX_GREEN, ew))
+    ns = green_budget - ew
+    ns = max(MIN_GREEN, min(MAX_GREEN, ns))
     return ns, ew
 
 
